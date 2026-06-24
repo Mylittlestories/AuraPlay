@@ -45,7 +45,7 @@ fun ShuffleSettingsScreen(
         ),
         ShuffleModeItem(
             mode = ShuffleManager.ShuffleMode.TRUE_RANDOM,
-            icon = Icons.Default.Casino,
+            icon = Icons.Default.ShuffleOn,
             title = "True Random",
             description = "Pure random selection. May repeat tracks.",
             color = ShuffleRandom

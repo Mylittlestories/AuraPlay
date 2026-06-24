@@ -19,9 +19,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
@@ -29,12 +26,27 @@ jobs:
         run: yes | sdkmanager --licenses || true
 
       - name: Install SDK components
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        run: |
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+      - name: Generate Gradle Wrapper
+        run: |
+          # Download gradle 8.4 binary
+          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -O /tmp/gradle.zip
+          unzip -qo /tmp/gradle.zip -d /opt/
+          export PATH="/opt/gradle-8.4/bin:$PATH"
+          gradle wrapper --gradle-version 8.4
+          chmod +x gradlew
+          echo "Gradle wrapper generated"
+          cat gradle/wrapper/gradle-wrapper.properties
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace --info 2>&1 | tail -200
 
       - name: Upload Debug APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: AuraPlay-debug

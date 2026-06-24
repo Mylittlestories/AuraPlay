@@ -1,5 +1,8 @@
 package com.auraplay.player.data.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
 data class Album(
     val id: Long,
     val title: String,
@@ -28,7 +31,9 @@ data class Genre(
     val trackCount: Int = 0
 )
 
+@Entity(tableName = "playlists")
 data class Playlist(
+    @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String,
     val trackCount: Int = 0,
@@ -36,6 +41,10 @@ data class Playlist(
     val dateModified: Long = System.currentTimeMillis()
 )
 
+@Entity(
+    tableName = "playlist_tracks",
+    primaryKeys = ["playlistId", "trackId"]
+)
 data class PlaylistTrack(
     val playlistId: Long,
     val trackId: Long,

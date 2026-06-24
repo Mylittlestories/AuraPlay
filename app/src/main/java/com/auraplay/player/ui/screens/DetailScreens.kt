@@ -57,6 +57,7 @@ fun AlbumDetailScreen(
                         Brush.verticalGradient(
                             colors = listOf(AccentGradientStart.copy(alpha = 0.3f), Color.Transparent)
                         )
+                    )
             ) {
                 Row(
                     modifier = Modifier

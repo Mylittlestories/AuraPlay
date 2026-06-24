@@ -1,5 +1,6 @@
 package com.auraplay.player.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -166,9 +167,7 @@ fun ShuffleModeCard(
                 item.color.copy(alpha = 0.15f)
             else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
-        border = if (isSelected) CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(item.color)
-        ) else null
+        border = if (isSelected) BorderStroke(2.dp, item.color) else null
     ) {
         Row(
             modifier = Modifier

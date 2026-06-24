@@ -31,6 +31,7 @@ import com.auraplay.player.data.model.RepeatMode
 import com.auraplay.player.ui.theme.*
 import com.auraplay.player.ui.viewmodel.MainViewModel
 import kotlin.math.abs
+import androidx.compose.animation.core.RepeatMode as AnimationRepeatMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,10 +57,10 @@ fun NowPlayingScreen(
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(20000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
+            animationSpec = infiniteRepeatable(
+                animation = tween(20000, easing = LinearEasing),
+                repeatMode = AnimationRepeatMode.Restart
+            ),
         label = "rotation"
     )
 

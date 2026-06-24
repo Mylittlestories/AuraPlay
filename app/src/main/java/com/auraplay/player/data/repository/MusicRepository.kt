@@ -3,6 +3,7 @@ package com.auraplay.player.data.repository
 import android.content.ContentUris
 import android.content.Context
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import com.auraplay.player.data.local.PlaylistDao
@@ -295,8 +296,4 @@ class MusicRepository @Inject constructor(
     suspend fun removeFromFavorites(trackId: Long) {
         trackDao.setFavorite(trackId, false)
     }
-}
-
-private fun android.net.Uri.Companion.parse(s: String): android.net.Uri {
-    return android.net.Uri.parse(s)
 }

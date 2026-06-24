@@ -28,15 +28,11 @@ class PlaybackManager @Inject constructor(
     private var exoPlayer: ExoPlayer? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    // Playback state
     private val _currentTrack = MutableStateFlow<Track?>(null)
     val currentTrack: StateFlow<Track?> = _currentTrack.asStateFlow()
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
-
-    private val _playbackState = MutableStateFlow(PlaybackState.IDLE)
-    val playbackState: StateFlow<PlaybackState> = _playbackState.asStateFlow()
 
     private val _currentPosition = MutableStateFlow(0L)
     val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
@@ -62,15 +58,6 @@ class PlaybackManager @Inject constructor(
     private val _playbackSpeed = MutableStateFlow(1.0f)
     val playbackSpeed: StateFlow<Float> = _playbackSpeed.asStateFlow()
 
-    private val _crossfadeEnabled = MutableStateFlow(false)
-    val crossfadeEnabled: StateFlow<Boolean> = _crossfadeEnabled.asStateFlow()
-
-    private val _crossfadeDuration = MutableStateFlow(3000) // 3 seconds
-    val crossfadeDuration: StateFlow<Int> = _crossfadeDuration.asStateFlow()
-
-    private val _gaplessEnabled = MutableStateFlow(true)
-    val gaplessEnabled: StateFlow<Boolean> = _gaplessEnabled.asStateFlow()
-
     private var positionUpdateJob: Job? = null
 
     fun initialize() {
@@ -82,10 +69,9 @@ class PlaybackManager @Inject constructor(
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                     .build(),
-                true // Handle audio focus
+                true
             )
             .setHandleAudioBecomingNoisy(true)
-            .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
             .apply {
                 addListener(playerListener)
@@ -93,42 +79,30 @@ class PlaybackManager @Inject constructor(
             }
 
         startPositionUpdates()
-        Log.d(TAG, "PlaybackManager initialized")
     }
 
     private val playerListener = object : Player.Listener {
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            when (playbackState) {
-                Player.STATE_IDLE -> _playbackState.value = PlaybackState.IDLE
-                Player.STATE_BUFFERING -> _playbackState.value = PlaybackState.BUFFERING
-                Player.STATE_READY -> _playbackState.value = PlaybackState.READY
-                Player.STATE_ENDED -> {
-                    _playbackState.value = PlaybackState.ENDED
-                    onTrackEnded()
-                }
-            }
-        }
-
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _isPlaying.value = isPlaying
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO_ADVANCE ||
-                reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
-                val newIndex = exoPlayer?.currentMediaItemIndex ?: return
-                if (newIndex < _queue.value.size) {
-                    _currentIndex.value = newIndex
-                    _currentTrack.value = _queue.value[newIndex]
-                    _duration.value = exoPlayer?.duration?.takeIf { it > 0 } ?: 0L
-                }
+            val newIndex = exoPlayer?.currentMediaItemIndex ?: return
+            if (newIndex < _queue.value.size && newIndex != _currentIndex.value) {
+                _currentIndex.value = newIndex
+                _currentTrack.value = _queue.value[newIndex]
+                _duration.value = exoPlayer?.duration?.takeIf { it > 0 } ?: 0L
+            }
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == Player.STATE_ENDED) {
+                onTrackEnded()
             }
         }
 
         override fun onPlayerError(error: PlaybackException) {
             Log.e(TAG, "Playback error", error)
-            _playbackState.value = PlaybackState.ERROR
-            // Try to play next track
             skipToNext()
         }
     }
@@ -137,7 +111,7 @@ class PlaybackManager @Inject constructor(
         positionUpdateJob?.cancel()
         positionUpdateJob = scope.launch {
             while (isActive) {
-                delay(100)
+                delay(200)
                 exoPlayer?.let { player ->
                     _currentPosition.value = player.currentPosition
                     if (player.duration > 0) {
@@ -148,19 +122,9 @@ class PlaybackManager @Inject constructor(
         }
     }
 
-    // ==================== Playback Controls ====================
-
-    fun play() {
-        exoPlayer?.play()
-    }
-
-    fun pause() {
-        exoPlayer?.pause()
-    }
-
-    fun togglePlayPause() {
-        if (_isPlaying.value) pause() else play()
-    }
+    fun play() { exoPlayer?.play() }
+    fun pause() { exoPlayer?.pause() }
+    fun togglePlayPause() { if (_isPlaying.value) pause() else play() }
 
     fun seekTo(positionMs: Long) {
         exoPlayer?.seekTo(positionMs)
@@ -170,75 +134,55 @@ class PlaybackManager @Inject constructor(
     fun skipToNext() {
         val queueSize = _queue.value.size
         if (queueSize == 0) return
-
         val newIndex = if (_shuffleEnabled.value) {
             shuffleManager.getNextShuffledIndex(_currentIndex.value)
         } else {
             (_currentIndex.value + 1) % queueSize
         }
-
         skipToIndex(newIndex)
     }
 
     fun skipToPrevious() {
         val queueSize = _queue.value.size
         if (queueSize == 0) return
-
-        // If more than 3 seconds in, restart current track
-        if ((_currentPosition.value) > 3000) {
-            seekTo(0)
-            return
-        }
-
+        if (_currentPosition.value > 3000) { seekTo(0); return }
         val newIndex = if (_shuffleEnabled.value) {
             shuffleManager.getPreviousShuffledIndex(_currentIndex.value)
         } else {
             if (_currentIndex.value > 0) _currentIndex.value - 1 else queueSize - 1
         }
-
         skipToIndex(newIndex)
     }
 
     fun skipToIndex(index: Int) {
-        val queue = _queue.value
-        if (index < 0 || index >= queue.size) return
-
+        val q = _queue.value
+        if (index < 0 || index >= q.size) return
         _currentIndex.value = index
-        _currentTrack.value = queue[index]
-        _duration.value = queue[index].duration
-
+        _currentTrack.value = q[index]
+        _duration.value = q[index].duration
         exoPlayer?.let { player ->
             player.seekToDefaultPosition(index)
             player.play()
         }
     }
 
-    // ==================== Queue Management ====================
-
     fun setQueueAndPlay(tracks: List<Track>, startIndex: Int = 0) {
         if (tracks.isEmpty()) return
-
         _queue.value = tracks
         _currentIndex.value = startIndex
-
-        // Set shuffle queue
-        if (_shuffleEnabled.value) {
-            shuffleManager.setQueue(tracks)
-        }
-
+        if (_shuffleEnabled.value) shuffleManager.setQueue(tracks)
         buildAndSetMediaItems(tracks, startIndex)
     }
 
     fun playAll(tracks: List<Track>, shuffle: Boolean = false) {
         if (tracks.isEmpty()) return
-
         if (shuffle) {
             _shuffleEnabled.value = true
             shuffleManager.setQueue(tracks)
-            val shuffledTracks = shuffleManager.generateShuffledQueue(tracks)
-            _queue.value = shuffledTracks
+            val shuffled = shuffleManager.generateShuffledQueue(tracks)
+            _queue.value = shuffled
             _currentIndex.value = 0
-            buildAndSetMediaItems(shuffledTracks, 0)
+            buildAndSetMediaItems(shuffled, 0)
         } else {
             _shuffleEnabled.value = false
             _queue.value = tracks
@@ -248,53 +192,9 @@ class PlaybackManager @Inject constructor(
     }
 
     fun addToQueue(track: Track) {
-        val currentQueue = _queue.value.toMutableList()
-        currentQueue.add(track)
-        _queue.value = currentQueue
-        rebuildMediaItems()
-    }
-
-    fun removeFromQueue(index: Int) {
-        val currentQueue = _queue.value.toMutableList()
-        if (index < 0 || index >= currentQueue.size) return
-
-        currentQueue.removeAt(index)
-        _queue.value = currentQueue
-
-        if (index < _currentIndex.value) {
-            _currentIndex.value = _currentIndex.value - 1
-        } else if (index == _currentIndex.value) {
-            // Current track removed, play next
-            if (currentQueue.isNotEmpty()) {
-                val newIndex = _currentIndex.value.coerceAtMost(currentQueue.size - 1)
-                _currentIndex.value = newIndex
-                _currentTrack.value = currentQueue[newIndex]
-                rebuildMediaItems()
-                exoPlayer?.seekToDefaultPosition(newIndex)
-            }
-        }
-
-        rebuildMediaItems()
-    }
-
-    fun moveInQueue(from: Int, to: Int) {
-        val currentQueue = _queue.value.toMutableList()
-        if (from < 0 || from >= currentQueue.size || to < 0 || to >= currentQueue.size) return
-
-        val track = currentQueue.removeAt(from)
-        currentQueue.add(to, track)
-        _queue.value = currentQueue
-
-        // Update current index
-        _currentIndex.value = when (_currentIndex.value) {
-            from -> to
-            in minOf(from, to)..maxOf(from, to) -> {
-                if (from < to) _currentIndex.value - 1 else _currentIndex.value + 1
-            }
-            else -> _currentIndex.value
-        }
-
-        rebuildMediaItems()
+        val q = _queue.value.toMutableList()
+        q.add(track)
+        _queue.value = q
     }
 
     fun clearQueue() {
@@ -305,29 +205,22 @@ class PlaybackManager @Inject constructor(
     }
 
     fun shuffleQueue() {
-        val currentQueue = _queue.value.toMutableList()
-        if (currentQueue.size <= 1) return
-
-        val currentTrack = _currentTrack.value
-        currentQueue.shuffle()
-
-        // Move current track to front
-        if (currentTrack != null) {
-            val currentIndex = currentQueue.indexOfFirst { it.id == currentTrack.id }
-            if (currentIndex > 0) {
-                currentQueue.removeAt(currentIndex)
-                currentQueue.add(0, currentTrack)
-            }
+        val q = _queue.value.toMutableList()
+        if (q.size <= 1) return
+        val current = _currentTrack.value
+        q.shuffle()
+        if (current != null) {
+            val idx = q.indexOfFirst { it.id == current.id }
+            if (idx > 0) { q.removeAt(idx); q.add(0, current) }
             _currentIndex.value = 0
         }
-
-        _queue.value = currentQueue
+        _queue.value = q
         rebuildMediaItems()
     }
 
     private fun buildAndSetMediaItems(tracks: List<Track>, startIndex: Int) {
         exoPlayer?.let { player ->
-            val mediaItems = tracks.map { track ->
+            val items = tracks.map { track ->
                 MediaItem.Builder()
                     .setUri(Uri.parse("content://media/external/audio/media/${track.id}"))
                     .setMediaId(track.id.toString())
@@ -340,8 +233,7 @@ class PlaybackManager @Inject constructor(
                     )
                     .build()
             }
-
-            player.setMediaItems(mediaItems, startIndex, 0L)
+            player.setMediaItems(items, startIndex, 0L)
             player.prepare()
             player.play()
             _currentTrack.value = tracks[startIndex]
@@ -350,11 +242,10 @@ class PlaybackManager @Inject constructor(
 
     private fun rebuildMediaItems() {
         val player = exoPlayer ?: return
-        val queue = _queue.value
-        val currentIndex = _currentIndex.value
-        val currentPosition = player.currentPosition
-
-        val mediaItems = queue.map { track ->
+        val q = _queue.value
+        val idx = _currentIndex.value
+        val pos = player.currentPosition
+        val items = q.map { track ->
             MediaItem.Builder()
                 .setUri(Uri.parse("content://media/external/audio/media/${track.id}"))
                 .setMediaId(track.id.toString())
@@ -367,12 +258,9 @@ class PlaybackManager @Inject constructor(
                 )
                 .build()
         }
-
-        player.setMediaItems(mediaItems, currentIndex.coerceAtLeast(0), currentPosition)
+        player.setMediaItems(items, idx.coerceAtLeast(0), pos)
         player.prepare()
     }
-
-    // ==================== Repeat & Shuffle ====================
 
     fun toggleRepeatMode() {
         val newMode = when (_repeatMode.value) {
@@ -381,7 +269,6 @@ class PlaybackManager @Inject constructor(
             RepeatMode.ONE -> RepeatMode.OFF
         }
         _repeatMode.value = newMode
-
         exoPlayer?.repeatMode = when (newMode) {
             RepeatMode.OFF -> Player.REPEAT_MODE_OFF
             RepeatMode.ALL -> Player.REPEAT_MODE_ALL
@@ -392,7 +279,6 @@ class PlaybackManager @Inject constructor(
     fun toggleShuffle() {
         val newEnabled = !_shuffleEnabled.value
         _shuffleEnabled.value = newEnabled
-
         if (newEnabled) {
             shuffleManager.setQueue(_queue.value)
             shuffleManager.setShuffleMode(_shuffleMode.value)
@@ -405,34 +291,17 @@ class PlaybackManager @Inject constructor(
         _shuffleMode.value = mode
         shuffleManager.setShuffleMode(mode)
         _shuffleEnabled.value = mode != ShuffleManager.ShuffleMode.OFF
-
-        if (mode != ShuffleManager.ShuffleMode.OFF) {
-            shuffleManager.setQueue(_queue.value)
-        }
+        if (mode != ShuffleManager.ShuffleMode.OFF) shuffleManager.setQueue(_queue.value)
     }
-
-    // ==================== Advanced Settings ====================
 
     fun setPlaybackSpeed(speed: Float) {
         _playbackSpeed.value = speed
         exoPlayer?.setPlaybackSpeed(speed)
     }
 
-    fun setCrossfade(enabled: Boolean, durationMs: Int = 3000) {
-        _crossfadeEnabled.value = enabled
-        _crossfadeDuration.value = durationMs
-    }
-
-    fun setGapless(enabled: Boolean) {
-        _gaplessEnabled.value = enabled
-    }
-
     private fun onTrackEnded() {
         when (_repeatMode.value) {
-            RepeatMode.ONE -> {
-                seekTo(0)
-                play()
-            }
+            RepeatMode.ONE -> { seekTo(0); play() }
             RepeatMode.ALL -> skipToNext()
             RepeatMode.OFF -> {
                 if (_currentIndex.value < _queue.value.size - 1 || _shuffleEnabled.value) {
@@ -445,18 +314,12 @@ class PlaybackManager @Inject constructor(
     }
 
     fun getExoPlayer(): ExoPlayer? = exoPlayer
+    fun getAudioSessionId(): Int = exoPlayer?.audioSessionId ?: 0
 
     fun release() {
         positionUpdateJob?.cancel()
         audioEngine.release()
         exoPlayer?.release()
         exoPlayer = null
-        scope.cancel()
     }
-
-    fun getAudioSessionId(): Int = exoPlayer?.audioSessionId ?: 0
-}
-
-enum class PlaybackState {
-    IDLE, BUFFERING, READY, ENDED, ERROR
 }

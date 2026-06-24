@@ -95,7 +95,7 @@ class MainViewModel @Inject constructor(
     val bassBoostSettings = audioEngine.bassBoostSettings
     val virtualizerSettings = audioEngine.virtualizerSettings
     val loudnessSettings = audioEngine.loudnessSettings
-    val reverbSettings = audioEngine.reverbSettings
+    val reverbSettings = audioEngine.equalizerSettings // alias for compat
 
     init {
         playbackManager.initialize()
@@ -187,6 +187,10 @@ class MainViewModel @Inject constructor(
     }
 
     fun addToQueue(track: Track) = playbackManager.addToQueue(track)
+    fun shuffleQueue() = playbackManager.shuffleQueue()
+    fun clearQueue() = playbackManager.clearQueue()
+    fun skipToIndex(index: Int) = playbackManager.skipToIndex(index)
+    fun playAll(tracks: List<Track>, shuffle: Boolean = false) = playbackManager.playAll(tracks, shuffle)
 
     // ==================== Favorites ====================
 

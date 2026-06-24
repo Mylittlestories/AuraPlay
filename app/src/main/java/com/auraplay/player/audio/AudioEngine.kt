@@ -11,10 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Advanced Audio Engine with DAC-quality processing
- * Supports: Equalizer, Bass Boost, Virtualizer, Reverb, Loudness Enhancer
- */
 @Singleton
 class AudioEngine @Inject constructor(
     @ApplicationContext private val context: Context
@@ -27,7 +23,6 @@ class AudioEngine @Inject constructor(
     private var bassBoost: BassBoost? = null
     private var virtualizer: Virtualizer? = null
     private var loudnessEnhancer: LoudnessEnhancer? = null
-    private var presetReverb: PresetReverb? = null
 
     private val _equalizerSettings = MutableStateFlow(EqualizerSettings())
     val equalizerSettings: StateFlow<EqualizerSettings> = _equalizerSettings.asStateFlow()
@@ -41,88 +36,52 @@ class AudioEngine @Inject constructor(
     private val _loudnessSettings = MutableStateFlow(LoudnessSettings())
     val loudnessSettings: StateFlow<LoudnessSettings> = _loudnessSettings.asStateFlow()
 
-    private val _reverbSettings = MutableStateFlow(ReverbSettings())
-    val reverbSettings: StateFlow<ReverbSettings> = _reverbSettings.asStateFlow()
-
-    private val _volumeSettings = MutableStateFlow(VolumeSettings())
-    val volumeSettings: StateFlow<VolumeSettings> = _volumeSettings.asStateFlow()
-
-    private var audioSessionId: Int = 0
-
     fun initialize(sessionId: Int) {
         release()
-        audioSessionId = sessionId
         Log.d(TAG, "Initializing audio effects for session: $sessionId")
 
         try {
-            equalizer = Equalizer(0, sessionId).apply {
-                enabled = true
-            }
-            Log.d(TAG, "Equalizer initialized: ${equalizer?.numberOfBands()} bands")
+            equalizer = Equalizer(0, sessionId).apply { enabled = true }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init equalizer", e)
         }
 
         try {
-            bassBoost = BassBoost(0, sessionId).apply {
-                enabled = true
-            }
+            bassBoost = BassBoost(0, sessionId).apply { enabled = true }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init bass boost", e)
         }
 
         try {
-            virtualizer = Virtualizer(0, sessionId).apply {
-                enabled = true
-            }
+            virtualizer = Virtualizer(0, sessionId).apply { enabled = true }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init virtualizer", e)
         }
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                loudnessEnhancer = LoudnessEnhancer(sessionId).apply {
-                    enabled = true
-                }
+                loudnessEnhancer = LoudnessEnhancer(sessionId).apply { enabled = true }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init loudness enhancer", e)
         }
 
-        try {
-            presetReverb = PresetReverb(0, sessionId).apply {
-                enabled = true
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to init reverb", e)
-        }
-
         updateStates()
     }
 
-    // ==================== Equalizer ====================
-
-    fun getEqualizerBandCount(): Int = equalizer?.numberOfBands()?.toInt() ?: 0
+    fun getEqualizerBandCount(): Int = equalizer?.numberOfBands?.toInt() ?: 0
 
     fun getEqualizerBandFrequencies(): List<Int> {
         return equalizer?.let { eq ->
-            (0 until eq.numberOfBands().toInt()).map { i ->
-                eq.getCenterFreq(i.toShort()) / 1000 // Convert mHz to Hz
-            }
-        } ?: emptyList()
-    }
-
-    fun getEqualizerBandNames(): List<String> {
-        return equalizer?.let { eq ->
-            (0 until eq.numberOfBands().toInt()).map { i ->
-                eq.getBand(i.toShort()).toString()
+            (0 until eq.numberOfBands.toInt()).map { i ->
+                eq.getCenterFreq(i.toShort()) / 1000
             }
         } ?: emptyList()
     }
 
     fun getEqualizerPresets(): List<String> {
         return equalizer?.let { eq ->
-            (0 until eq.numberOfPresets().toInt()).map { i ->
+            (0 until eq.numberOfPresets.toInt()).map { i ->
                 eq.getPresetName(i.toShort())
             }
         } ?: emptyList()
@@ -130,8 +89,8 @@ class AudioEngine @Inject constructor(
 
     fun setEqualizerBand(band: Short, level: Short) {
         equalizer?.let { eq ->
-            val clampedLevel = level.coerceIn(eq.bandLevelRange[0], eq.bandLevelRange[1])
-            eq.setBandLevel(band, clampedLevel)
+            val clamped = level.coerceIn(eq.bandLevelRange[0], eq.bandLevelRange[1])
+            eq.setBandLevel(band, clamped)
             updateEqualizerState()
         }
     }
@@ -141,35 +100,15 @@ class AudioEngine @Inject constructor(
         updateEqualizerState()
     }
 
-    fun getEqualizerBandLevel(band: Short): Short {
-        return equalizer?.getBandLevel(band) ?: 0
-    }
-
-    fun getEqualizerBandLevelRange(): Pair<Short, Short> {
-        return equalizer?.let {
-            Pair(it.bandLevelRange[0], it.bandLevelRange[1])
-        } ?: Pair(-1500, 1500)
-    }
-
-    // ==================== Bass Boost ====================
-
     fun setBassBoostStrength(strength: Short) {
         bassBoost?.setStrength(strength)
         updateBassBoostState()
     }
 
-    fun getBassBoostStrength(): Short = bassBoost?.roundedStrength ?: 0
-
-    // ==================== Virtualizer ====================
-
     fun setVirtualizerStrength(strength: Short) {
         virtualizer?.setStrength(strength)
         updateVirtualizerState()
     }
-
-    fun getVirtualizerStrength(): Short = virtualizer?.roundedStrength ?: 0
-
-    // ==================== Loudness Enhancer ====================
 
     fun setLoudnessGain(gainMb: Int) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -178,42 +117,21 @@ class AudioEngine @Inject constructor(
         }
     }
 
-    // ==================== Reverb ====================
-
-    fun setReverbPreset(preset: Short) {
-        presetReverb?.preset = preset
-        updateReverbState()
-    }
-
-    // ==================== Volume ====================
-
-    fun setVolume(left: Float, right: Float) {
-        _volumeSettings.value = VolumeSettings(left = left, right = right)
-    }
-
-    // ==================== Presets ====================
-
     fun applyPreset(preset: AudioPreset) {
         when (preset) {
             AudioPreset.FLAT -> {
                 equalizer?.let { eq ->
-                    for (i in 0 until eq.numberOfBands()) {
+                    for (i in 0 until eq.numberOfBands) {
                         eq.setBandLevel(i.toShort(), 0)
                     }
                 }
                 bassBoost?.setStrength(0)
                 virtualizer?.setStrength(0)
-                loudnessEnhancer?.setTargetGain(0)
             }
             AudioPreset.BASS_BOOST -> {
                 applyCustomCurve(listOf(600, 500, 300, 100, 0, 0, 0, 0, 0, 0))
                 bassBoost?.setStrength(800)
                 virtualizer?.setStrength(400)
-            }
-            AudioPreset.VOCAL -> {
-                applyCustomCurve(listOf(-200, -100, 0, 200, 400, 400, 200, 0, -100, -200))
-                bassBoost?.setStrength(0)
-                virtualizer?.setStrength(200)
             }
             AudioPreset.ROCK -> {
                 applyCustomCurve(listOf(500, 300, -100, -300, -100, 200, 400, 500, 500, 500))
@@ -255,13 +173,14 @@ class AudioEngine @Inject constructor(
                 bassBoost?.setStrength(600)
                 virtualizer?.setStrength(400)
             }
+            else -> {}
         }
         updateStates()
     }
 
     private fun applyCustomCurve(levels: List<Int>) {
         equalizer?.let { eq ->
-            val bandCount = eq.numberOfBands().toInt()
+            val bandCount = eq.numberOfBands.toInt()
             for (i in 0 until minOf(bandCount, levels.size)) {
                 val clamped = levels[i].toShort().coerceIn(eq.bandLevelRange[0], eq.bandLevelRange[1])
                 eq.setBandLevel(i.toShort(), clamped)
@@ -271,7 +190,7 @@ class AudioEngine @Inject constructor(
 
     private fun updateEqualizerState() {
         equalizer?.let { eq ->
-            val bands = (0 until eq.numberOfBands().toInt()).map { i ->
+            val bands = (0 until eq.numberOfBands.toInt()).map { i ->
                 eq.getBandLevel(i.toShort())
             }
             _equalizerSettings.value = EqualizerSettings(
@@ -311,21 +230,11 @@ class AudioEngine @Inject constructor(
         }
     }
 
-    private fun updateReverbState() {
-        presetReverb?.let { r ->
-            _reverbSettings.value = ReverbSettings(
-                isEnabled = r.enabled,
-                preset = r.preset
-            )
-        }
-    }
-
     private fun updateStates() {
         updateEqualizerState()
         updateBassBoostState()
         updateVirtualizerState()
         updateLoudnessState()
-        updateReverbState()
     }
 
     fun release() {
@@ -333,12 +242,10 @@ class AudioEngine @Inject constructor(
         try { bassBoost?.release() } catch (_: Exception) {}
         try { virtualizer?.release() } catch (_: Exception) {}
         try { loudnessEnhancer?.release() } catch (_: Exception) {}
-        try { presetReverb?.release() } catch (_: Exception) {}
         equalizer = null
         bassBoost = null
         virtualizer = null
         loudnessEnhancer = null
-        presetReverb = null
     }
 
     fun setEqualizerEnabled(enabled: Boolean) {
@@ -360,14 +267,8 @@ class AudioEngine @Inject constructor(
         loudnessEnhancer?.enabled = enabled
         updateLoudnessState()
     }
-
-    fun setReverbEnabled(enabled: Boolean) {
-        presetReverb?.enabled = enabled
-        updateReverbState()
-    }
 }
 
-// Data classes for audio settings
 data class EqualizerSettings(
     val isEnabled: Boolean = false,
     val bandLevels: List<Short> = emptyList(),
@@ -389,17 +290,7 @@ data class LoudnessSettings(
     val gainMb: Int = 0
 )
 
-data class ReverbSettings(
-    val isEnabled: Boolean = false,
-    val preset: Short = 0
-)
-
-data class VolumeSettings(
-    val left: Float = 1.0f,
-    val right: Float = 1.0f
-)
-
 enum class AudioPreset {
-    FLAT, BASS_BOOST, VOCAL, ROCK, POP, JAZZ, CLASSICAL,
+    FLAT, BASS_BOOST, ROCK, POP, JAZZ, CLASSICAL,
     ELECTRONIC, HIPHOP, ACOUSTIC, BASS_AND_TREBLE
 }

@@ -38,14 +38,14 @@ fun ShuffleSettingsScreen(
         ),
         ShuffleModeItem(
             mode = ShuffleManager.ShuffleMode.SMART,
-            icon = Icons.Default.AutoAwesome,
+            icon = Icons.Default.Star,
             title = "Smart Shuffle",
             description = "No repetition, varied artists & albums. The best shuffle experience.",
             color = ShuffleSmart
         ),
         ShuffleModeItem(
             mode = ShuffleManager.ShuffleMode.TRUE_RANDOM,
-            icon = Icons.Default.ShuffleOn,
+            icon = Icons.Default.Shuffle,
             title = "True Random",
             description = "Pure random selection. May repeat tracks.",
             color = ShuffleRandom

@@ -26,30 +26,30 @@ jobs:
         run: yes | sdkmanager --licenses || true
 
       - name: Install SDK components
-        run: |
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
       - name: Generate Gradle Wrapper
         run: |
-          # Download gradle 8.4 binary
           wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -O /tmp/gradle.zip
           unzip -qo /tmp/gradle.zip -d /opt/
           export PATH="/opt/gradle-8.4/bin:$PATH"
           gradle wrapper --gradle-version 8.4
           chmod +x gradlew
-          echo "Gradle wrapper generated"
-          cat gradle/wrapper/gradle-wrapper.properties
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace --info 2>&1 | tail -200
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Find APK
+        run: |
+          echo "Looking for APK files..."
+          find . -name "*.apk" -type f 2>/dev/null
+          ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Debug APK dir not found"
 
       - name: Upload Debug APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: AuraPlay-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/**/*.apk
           retention-days: 90
-          if-no-files-found: warn

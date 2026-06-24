@@ -260,7 +260,7 @@ fun EqualizerScreen(
         // Virtualizer
         AudioEffectCard(
             title = "Virtualizer",
-            icon = Icons.Default.SurroundSound,
+            icon = Icons.Default.Headphones,
             isEnabled = virtualizerSettings.isEnabled,
             onToggle = { viewModel.setVirtualizerEnabled(it) },
             value = virtualizerSettings.strength.toFloat(),

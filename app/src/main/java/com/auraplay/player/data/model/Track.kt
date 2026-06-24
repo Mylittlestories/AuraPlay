@@ -1,6 +1,5 @@
 package com.auraplay.player.data.model
 
-import android.net.Uri
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -12,7 +11,7 @@ data class Track(
     val artist: String,
     val album: String,
     val albumArtist: String = "",
-    val duration: Long, // in milliseconds
+    val duration: Long,
     val filePath: String,
     val fileName: String,
     val fileSize: Long,
@@ -32,9 +31,6 @@ data class Track(
     val isFavorite: Boolean = false,
     val folderName: String = ""
 ) {
-    val uri: Uri
-        get() = Uri.parse("content://media/external/audio/media/$id")
-
     val formattedDuration: String
         get() {
             val totalSeconds = duration / 1000
@@ -48,11 +44,4 @@ data class Track(
 
     val formattedSampleRate: String
         get() = if (sampleRate > 0) "${sampleRate / 1000} kHz" else "Unknown"
-
-    val formattedFileSize: String
-        get() {
-            val kb = fileSize / 1024.0
-            val mb = kb / 1024.0
-            return if (mb >= 1) "%.1f MB".format(mb) else "%.0f KB".format(kb)
-        }
 }

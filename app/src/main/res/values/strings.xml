@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AuraPlay</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="queue">Queue</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="settings">Settings</string>
+    <string name="library">Library</string>
+    <string name="search">Search</string>
+    <string name="playlists">Playlists</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="repeat">Repeat</string>
+    <string name="scan_for_music">Scan for Music</string>
+    <string name="no_music_found">No music found</string>
+    <string name="favorites">Favorites</string>
+    <string name="recently_played">Recently Played</string>
+    <string name="most_played">Most Played</string>
+    <string name="recently_added">Recently Added</string>
+</resources>

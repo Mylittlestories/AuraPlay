@@ -3,7 +3,6 @@ package com.auraplay.player.ui.navigation
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -33,10 +32,10 @@ sealed class Screen(val route: String) {
     object NowPlaying : Screen("now_playing")
     object Queue : Screen("queue")
     object Equalizer : Screen("equalizer")
-    object AlbumDetail : Screen("album/{albumName}") { fun createRoute(albumName: String) = "album/$albumName" }
-    object ArtistDetail : Screen("artist/{artistName}") { fun createRoute(artistName: String) = "artist/$artistName" }
-    object FolderDetail : Screen("folder/{folderName}") { fun createRoute(folderName: String) = "folder/$folderName" }
-    object PlaylistDetail : Screen("playlist/{playlistId}") { fun createRoute(playlistId: Long) = "playlist/$playlistId" }
+    object AlbumDetail : Screen("album/{albumName}") { fun createRoute(n: String) = "album/$n" }
+    object ArtistDetail : Screen("artist/{artistName}") { fun createRoute(n: String) = "artist/$n" }
+    object FolderDetail : Screen("folder/{folderName}") { fun createRoute(n: String) = "folder/$n" }
+    object PlaylistDetail : Screen("playlist/{playlistId}") { fun createRoute(id: Long) = "playlist/$id" }
     object ShuffleSettings : Screen("shuffle_settings")
     object ThemeSettings : Screen("theme_settings")
 }
@@ -59,7 +58,6 @@ fun AuraPlayNavHost() {
     val currentTrack by viewModel.currentTrack.collectAsStateWithLifecycle()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
     val showBottomBar = currentRoute in bottomNavItems.map { it.screen.route }
     val showMiniPlayer = currentTrack != null && currentRoute != Screen.NowPlaying.route
 
@@ -78,8 +76,7 @@ fun AuraPlayNavHost() {
                                 onClick = {
                                     navController.navigate(item.screen.route) {
                                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
+                                        launchSingleTop = true; restoreState = true
                                     }
                                 },
                                 icon = { Icon(if (selected) item.selectedIcon else item.unselectedIcon, contentDescription = item.label) },
@@ -108,12 +105,12 @@ fun AuraPlayNavHost() {
             composable(Screen.Equalizer.route) { EqualizerScreen(viewModel = viewModel, onBack = { navController.popBackStack() }) }
             composable(Screen.ShuffleSettings.route) { ShuffleSettingsScreen(viewModel = viewModel, onBack = { navController.popBackStack() }) }
             composable(Screen.ThemeSettings.route) {
-                var currentTheme by remember { mutableStateOf(com.auraplay.player.ui.theme.AppTheme.AURAPLAY) }
-                ThemeSettingsScreen(currentTheme = currentTheme, onThemeSelected = { currentTheme = it }, onBack = { navController.popBackStack() })
+                val currentTheme by viewModel.currentTheme.collectAsStateWithLifecycle()
+                ThemeSettingsScreen(currentTheme = currentTheme, onThemeSelected = { viewModel.setTheme(it) }, onBack = { navController.popBackStack() })
             }
-            composable(Screen.AlbumDetail.route) { val name = it.arguments?.getString("albumName") ?: ""; AlbumDetailScreen(viewModel = viewModel, albumName = name, onBack = { navController.popBackStack() }, onNavigateToNowPlaying = { navController.navigate(Screen.NowPlaying.route) }) }
-            composable(Screen.ArtistDetail.route) { val name = it.arguments?.getString("artistName") ?: ""; ArtistDetailScreen(viewModel = viewModel, artistName = name, onBack = { navController.popBackStack() }, onNavigateToNowPlaying = { navController.navigate(Screen.NowPlaying.route) }) }
-            composable(Screen.FolderDetail.route) { val name = it.arguments?.getString("folderName") ?: ""; FolderDetailScreen(viewModel = viewModel, folderName = name, onBack = { navController.popBackStack() }, onNavigateToNowPlaying = { navController.navigate(Screen.NowPlaying.route) }) }
+            composable(Screen.AlbumDetail.route) { val n = it.arguments?.getString("albumName") ?: ""; AlbumDetailScreen(viewModel = viewModel, albumName = n, onBack = { navController.popBackStack() }, onNavigateToNowPlaying = { navController.navigate(Screen.NowPlaying.route) }) }
+            composable(Screen.ArtistDetail.route) { val n = it.arguments?.getString("artistName") ?: ""; ArtistDetailScreen(viewModel = viewModel, artistName = n, onBack = { navController.popBackStack() }, onNavigateToNowPlaying = { navController.navigate(Screen.NowPlaying.route) }) }
+            composable(Screen.FolderDetail.route) { val n = it.arguments?.getString("folderName") ?: ""; FolderDetailScreen(viewModel = viewModel, folderName = n, onBack = { navController.popBackStack() }, onNavigateToNowPlaying = { navController.navigate(Screen.NowPlaying.route) }) }
             composable(Screen.PlaylistDetail.route) { val id = it.arguments?.getString("playlistId")?.toLongOrNull() ?: 0L; PlaylistDetailScreen(viewModel = viewModel, playlistId = id, onBack = { navController.popBackStack() }, onNavigateToNowPlaying = { navController.navigate(Screen.NowPlaying.route) }) }
         }
     }

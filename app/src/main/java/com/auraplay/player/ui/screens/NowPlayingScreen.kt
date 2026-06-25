@@ -31,6 +31,7 @@ import com.auraplay.player.audio.MetadataReader
 import com.auraplay.player.audio.TubeAmplifier
 import com.auraplay.player.audio.TrackMetadata
 import com.auraplay.player.data.model.RepeatMode
+import com.auraplay.player.ui.components.WinampSpectrumVisualizer
 import com.auraplay.player.ui.theme.*
 import com.auraplay.player.ui.viewmodel.MainViewModel
 import kotlin.math.abs
@@ -152,7 +153,13 @@ fun NowPlayingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // === WINAMP VISUALIZER ===
+            WinampSpectrumVisualizer(
+                isPlaying = isPlaying,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // === PROGRESS ===
             Column {

@@ -1,6 +1,7 @@
 package com.auraplay.player.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.auraplay.player.audio.AudioEngine
 import com.auraplay.player.audio.AudioPreset
@@ -11,6 +12,7 @@ import com.auraplay.player.audio.TubeAmplifier
 import com.auraplay.player.data.model.*
 import com.auraplay.player.data.repository.MusicRepository
 import com.auraplay.player.playback.PlaybackManager
+import com.auraplay.player.ui.theme.AppTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -18,13 +20,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    application: Application,
     private val repository: MusicRepository,
     val playbackManager: PlaybackManager,
     val audioEngine: AudioEngine,
     private val shuffleManager: ShuffleManager,
     private val metadataReader: MetadataReader,
     private val tubeAmplifier: TubeAmplifier
-) : ViewModel() {
+) : AndroidViewModel(application) {
+
+    // ==================== Theme ====================
+    private val _currentTheme = MutableStateFlow(AppTheme.AURAPLAY)
+    val currentTheme: StateFlow<AppTheme> = _currentTheme.asStateFlow()
+
+    fun setTheme(theme: AppTheme) {
+        _currentTheme.value = theme
+    }
 
     // ==================== Library Data ====================
     val allTracks = repository.getAllTracks()
@@ -85,7 +96,7 @@ class MainViewModel @Inject constructor(
     private val _currentPlaylistTracks = MutableStateFlow<List<Track>>(emptyList())
     val currentPlaylistTracks: StateFlow<List<Track>> = _currentPlaylistTracks.asStateFlow()
 
-    // ==================== Playback State (exposed) ====================
+    // ==================== Playback State ====================
     val currentTrack = playbackManager.currentTrack
     val isPlaying = playbackManager.isPlaying
     val currentPosition = playbackManager.currentPosition
@@ -97,12 +108,9 @@ class MainViewModel @Inject constructor(
     val currentIndex = playbackManager.currentIndex
     val playbackSpeed = playbackManager.playbackSpeed
     val equalizerSettings = audioEngine.equalizerSettings
+
     private val _ampMode = MutableStateFlow(TubeAmplifier.AmpMode.OFF)
     val ampMode: StateFlow<TubeAmplifier.AmpMode> = _ampMode.asStateFlow()
-    val bassBoostSettings = audioEngine.bassBoostSettings
-    val virtualizerSettings = audioEngine.virtualizerSettings
-    val loudnessSettings = audioEngine.loudnessSettings
-    val reverbSettings = audioEngine.equalizerSettings // alias for compat
 
     init {
         playbackManager.initialize()
@@ -113,12 +121,13 @@ class MainViewModel @Inject constructor(
     fun scanForMusic() {
         viewModelScope.launch {
             _isScanning.value = true
-            _scanProgress.value = "Scanning for music..."
+            _scanProgress.value = "Scanning device for music..."
             try {
                 val count = repository.scanDeviceForMusic()
-                _scanProgress.value = "Found $count tracks"
+                _scanProgress.value = if (count > 0) "Found $count tracks" else "No music files found. Make sure you have music files in your storage."
             } catch (e: Exception) {
-                _scanProgress.value = "Scan failed: ${e.message}"
+                _scanProgress.value = "Scan error: ${e.message}"
+                e.printStackTrace()
             } finally {
                 _isScanning.value = false
             }
@@ -130,17 +139,13 @@ class MainViewModel @Inject constructor(
     fun playTrack(track: Track, queue: List<Track> = allTracks.value) {
         val index = queue.indexOf(track).coerceAtLeast(0)
         playbackManager.setQueueAndPlay(queue, index)
-        viewModelScope.launch {
-            repository.incrementPlayCount(track.id)
-        }
+        viewModelScope.launch { repository.incrementPlayCount(track.id) }
     }
 
     fun playAlbum(album: String) {
         viewModelScope.launch {
             repository.getTracksByAlbum(album).first().let { tracks ->
-                if (tracks.isNotEmpty()) {
-                    playbackManager.playAll(tracks)
-                }
+                if (tracks.isNotEmpty()) playbackManager.playAll(tracks)
             }
         }
     }
@@ -148,9 +153,7 @@ class MainViewModel @Inject constructor(
     fun playArtist(artist: String) {
         viewModelScope.launch {
             repository.getTracksByArtist(artist).first().let { tracks ->
-                if (tracks.isNotEmpty()) {
-                    playbackManager.playAll(tracks)
-                }
+                if (tracks.isNotEmpty()) playbackManager.playAll(tracks)
             }
         }
     }
@@ -158,9 +161,7 @@ class MainViewModel @Inject constructor(
     fun playFolder(folder: String) {
         viewModelScope.launch {
             repository.getTracksByFolder(folder).first().let { tracks ->
-                if (tracks.isNotEmpty()) {
-                    playbackManager.playAll(tracks)
-                }
+                if (tracks.isNotEmpty()) playbackManager.playAll(tracks)
             }
         }
     }
@@ -168,159 +169,71 @@ class MainViewModel @Inject constructor(
     fun playPlaylist(playlistId: Long) {
         viewModelScope.launch {
             repository.getPlaylistTracks(playlistId).first().let { tracks ->
-                if (tracks.isNotEmpty()) {
-                    playbackManager.playAll(tracks)
-                }
+                if (tracks.isNotEmpty()) playbackManager.playAll(tracks)
             }
         }
     }
 
     fun shuffleAll() {
         val tracks = allTracks.value
-        if (tracks.isNotEmpty()) {
-            playbackManager.playAll(tracks, shuffle = true)
-        }
+        if (tracks.isNotEmpty()) playbackManager.playAll(tracks, shuffle = true)
     }
 
+    fun playAll(tracks: List<Track>, shuffle: Boolean = false) = playbackManager.playAll(tracks, shuffle)
     fun togglePlayPause() = playbackManager.togglePlayPause()
     fun skipToNext() = playbackManager.skipToNext()
     fun skipToPrevious() = playbackManager.skipToPrevious()
     fun seekTo(positionMs: Long) = playbackManager.seekTo(positionMs)
     fun toggleRepeatMode() = playbackManager.toggleRepeatMode()
     fun toggleShuffle() = playbackManager.toggleShuffle()
-
-    fun setShuffleMode(mode: ShuffleManager.ShuffleMode) {
-        playbackManager.setShuffleMode(mode)
-    }
-
+    fun setShuffleMode(mode: ShuffleManager.ShuffleMode) = playbackManager.setShuffleMode(mode)
     fun addToQueue(track: Track) = playbackManager.addToQueue(track)
     fun shuffleQueue() = playbackManager.shuffleQueue()
     fun clearQueue() = playbackManager.clearQueue()
     fun skipToIndex(index: Int) = playbackManager.skipToIndex(index)
-    fun playAll(tracks: List<Track>, shuffle: Boolean = false) = playbackManager.playAll(tracks, shuffle)
 
     // ==================== Favorites ====================
-
     fun toggleFavorite(trackId: Long) {
-        viewModelScope.launch {
-            repository.toggleFavorite(trackId)
-        }
+        viewModelScope.launch { repository.toggleFavorite(trackId) }
     }
 
     // ==================== Playlists ====================
-
-    fun createPlaylist(name: String) {
-        viewModelScope.launch {
-            repository.createPlaylist(name)
-        }
-    }
-
-    fun deletePlaylist(playlist: Playlist) {
-        viewModelScope.launch {
-            repository.deletePlaylist(playlist)
-        }
-    }
-
-    fun addTrackToPlaylist(playlistId: Long, trackId: Long) {
-        viewModelScope.launch {
-            repository.addTrackToPlaylist(playlistId, trackId)
-        }
-    }
-
-    fun removeTrackFromPlaylist(playlistId: Long, trackId: Long) {
-        viewModelScope.launch {
-            repository.removeTrackFromPlaylist(playlistId, trackId)
-        }
-    }
+    fun createPlaylist(name: String) { viewModelScope.launch { repository.createPlaylist(name) } }
+    fun deletePlaylist(playlist: Playlist) { viewModelScope.launch { repository.deletePlaylist(playlist) } }
+    fun addTrackToPlaylist(playlistId: Long, trackId: Long) { viewModelScope.launch { repository.addTrackToPlaylist(playlistId, trackId) } }
+    fun removeTrackFromPlaylist(playlistId: Long, trackId: Long) { viewModelScope.launch { repository.removeTrackFromPlaylist(playlistId, trackId) } }
 
     // ==================== Search ====================
+    fun setSearchQuery(query: String) { _searchQuery.value = query }
 
-    fun setSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
-
-    // ==================== Album/Artist/Folder Details ====================
-
+    // ==================== Detail Loading ====================
     fun loadAlbumTracks(album: String) {
-        viewModelScope.launch {
-            repository.getTracksByAlbum(album).collect {
-                _currentAlbumTracks.value = it
-            }
-        }
+        viewModelScope.launch { repository.getTracksByAlbum(album).collect { _currentAlbumTracks.value = it } }
     }
-
     fun loadArtistTracks(artist: String) {
-        viewModelScope.launch {
-            repository.getTracksByArtist(artist).collect {
-                _currentArtistTracks.value = it
-            }
-        }
+        viewModelScope.launch { repository.getTracksByArtist(artist).collect { _currentArtistTracks.value = it } }
     }
-
     fun loadFolderTracks(folder: String) {
-        viewModelScope.launch {
-            repository.getTracksByFolder(folder).collect {
-                _currentFolderTracks.value = it
-            }
-        }
+        viewModelScope.launch { repository.getTracksByFolder(folder).collect { _currentFolderTracks.value = it } }
     }
-
     fun loadPlaylistTracks(playlistId: Long) {
-        viewModelScope.launch {
-            repository.getPlaylistTracks(playlistId).collect {
-                _currentPlaylistTracks.value = it
-            }
-        }
+        viewModelScope.launch { repository.getPlaylistTracks(playlistId).collect { _currentPlaylistTracks.value = it } }
     }
 
     // ==================== Audio Settings ====================
-
-    fun setEqualizerBand(band: Short, level: Short) {
-        audioEngine.setEqualizerBand(band, level)
-    }
-
-    fun setEqualizerPreset(preset: Short) {
-        audioEngine.setEqualizerPreset(preset)
-    }
-
-    fun setBassBoostStrength(strength: Short) {
-        audioEngine.setBassBoostStrength(strength)
-    }
-
-    fun setVirtualizerStrength(strength: Short) {
-        audioEngine.setVirtualizerStrength(strength)
-    }
-
-    fun setLoudnessGain(gainMb: Int) {
-        audioEngine.setLoudnessGain(gainMb)
-    }
-
-    fun applyAudioPreset(preset: AudioPreset) {
-        audioEngine.applyPreset(preset)
-    }
-
-    fun setEqualizerEnabled(enabled: Boolean) {
-        audioEngine.setEqualizerEnabled(enabled)
-    }
-
-    fun setBassBoostEnabled(enabled: Boolean) {
-        audioEngine.setBassBoostEnabled(enabled)
-    }
-
-    fun setVirtualizerEnabled(enabled: Boolean) {
-        audioEngine.setVirtualizerEnabled(enabled)
-    }
-
-    fun setLoudnessEnabled(enabled: Boolean) {
-        audioEngine.setLoudnessEnabled(enabled)
-    }
-
-    fun setPlaybackSpeed(speed: Float) {
-        playbackManager.setPlaybackSpeed(speed)
-    }
+    fun setEqualizerBand(band: Short, level: Short) = audioEngine.setEqualizerBand(band, level)
+    fun setEqualizerPreset(preset: Short) = audioEngine.setEqualizerPreset(preset)
+    fun setBassBoostStrength(strength: Short) = audioEngine.setBassBoostStrength(strength)
+    fun setVirtualizerStrength(strength: Short) = audioEngine.setVirtualizerStrength(strength)
+    fun setLoudnessGain(gainMb: Int) = audioEngine.setLoudnessGain(gainMb)
+    fun applyAudioPreset(preset: AudioPreset) = audioEngine.applyPreset(preset)
+    fun setEqualizerEnabled(enabled: Boolean) = audioEngine.setEqualizerEnabled(enabled)
+    fun setBassBoostEnabled(enabled: Boolean) = audioEngine.setBassBoostEnabled(enabled)
+    fun setVirtualizerEnabled(enabled: Boolean) = audioEngine.setVirtualizerEnabled(enabled)
+    fun setLoudnessEnabled(enabled: Boolean) = audioEngine.setLoudnessEnabled(enabled)
+    fun setPlaybackSpeed(speed: Float) = playbackManager.setPlaybackSpeed(speed)
 
     // ==================== Tube Amplifier ====================
-
     fun cycleAmpMode() {
         val modes = TubeAmplifier.AmpMode.entries
         val currentIndex = modes.indexOf(_ampMode.value)
@@ -351,21 +264,10 @@ class MainViewModel @Inject constructor(
     }
 
     // ==================== Metadata ====================
-
     fun getTrackMetadata(filePath: String): TrackMetadata? {
         return try { metadataReader.readMetadata(filePath) } catch (_: Exception) { null }
     }
 
-    fun downloadAlbumArt(track: com.auraplay.player.data.model.Track) {
-        // TODO: Integrate with MusicBrainz/Cover Art Archive API
-    }
-
-    fun downloadLyrics(track: com.auraplay.player.data.model.Track) {
-        // TODO: Integrate with lyrics API
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        // Don't release here - let the service handle it
-    }
+    fun downloadAlbumArt(track: Track) { /* TODO: MusicBrainz API */ }
+    fun downloadLyrics(track: Track) { /* TODO: Lyrics API */ }
 }

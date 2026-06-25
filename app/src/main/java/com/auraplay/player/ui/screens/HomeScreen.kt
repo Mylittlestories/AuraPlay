@@ -64,19 +64,30 @@ fun HomeScreen(
                     )
                     .padding(24.dp)
             ) {
-                Column {
-                    Text(
-                        text = "AuraPlay",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // App Logo
+                    Icon(
+                        imageVector = Icons.Default.Album,
+                        contentDescription = "AuraPlay",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (allTracks.isNotEmpty()) "${allTracks.size} tracks" else "Welcome",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "AuraPlay",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (allTracks.isNotEmpty()) "${allTracks.size} tracks • Your music, your way"
+                            else "Welcome • Tap scan to find your music",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

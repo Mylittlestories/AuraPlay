@@ -32,24 +32,21 @@ jobs:
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -O /tmp/gradle.zip
           unzip -qo /tmp/gradle.zip -d /opt/
-          export PATH="/opt/gradle-8.4/bin:$PATH"
-          gradle wrapper --gradle-version 8.4
+          /opt/gradle-8.4/bin/gradle wrapper --gradle-version 8.4
           chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon
 
-      - name: Find APK
-        run: |
-          echo "Looking for APK files..."
-          find . -name "*.apk" -type f 2>/dev/null
-          ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Debug APK dir not found"
+      - name: Find APK location
+        run: find . -name "*.apk" -type f -exec ls -lh {} \;
 
-      - name: Upload Debug APK
+      - name: Copy APK to root
+        run: cp app/build/outputs/apk/debug/app-debug.apk ./AuraPlay.apk || find . -name "*.apk" -exec cp {} ./AuraPlay.apk \;
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AuraPlay-debug
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/**/*.apk
-          retention-days: 90
+          name: AuraPlay-APK
+          path: AuraPlay.apk
+          if-no-files-found: error

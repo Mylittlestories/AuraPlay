@@ -1,5 +1,6 @@
 package com.auraplay.player.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -80,8 +82,8 @@ fun MetadataDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             if (metadata?.albumArt != null) {
-                                androidx.compose.foundation.Image(
-                                    bitmap = androidx.compose.ui.graphics.asImageBitmap(metadata.albumArt),
+                                Image(
+                                    bitmap = metadata.albumArt.asImageBitmap(),
                                     contentDescription = "Album Art",
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Fit

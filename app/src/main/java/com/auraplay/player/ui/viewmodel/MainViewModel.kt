@@ -281,7 +281,7 @@ class MainViewModel @Inject constructor(
     val sleepTimerRemaining = sleepTimer.remainingMs
 
     fun startSleepTimer(durationMs: Long) {
-        sleepTimer.onTimerFinished = { pause() }
+        sleepTimer.onTimerFinished = { playbackManager.pause() }
         sleepTimer.start(durationMs)
     }
 

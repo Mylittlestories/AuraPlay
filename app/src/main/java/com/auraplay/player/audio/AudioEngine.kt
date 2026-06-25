@@ -196,7 +196,7 @@ class AudioEngine @Inject constructor(
             _equalizerSettings.value = EqualizerSettings(
                 isEnabled = eq.enabled,
                 bandLevels = bands,
-                currentPreset = eq.curPreset.toInt()
+                currentPreset = 0
             )
         }
     }

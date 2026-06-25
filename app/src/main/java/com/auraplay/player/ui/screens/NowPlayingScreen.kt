@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import androidx.compose.animation.core.RepeatMode as AnimRepeatMode
 import com.auraplay.player.data.model.RepeatMode
 import com.auraplay.player.ui.theme.*
 import com.auraplay.player.ui.viewmodel.MainViewModel
@@ -53,7 +54,7 @@ fun NowPlayingScreen(
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
             animation = tween(20000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            repeatMode = AnimRepeatMode.Restart
         ),
         label = "rotation"
     )

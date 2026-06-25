@@ -35,7 +35,7 @@ fun MiniPlayer(viewModel: MainViewModel, onExpand: () -> Unit) {
 
     Surface(modifier = Modifier.fillMaxWidth().clickable { onExpand() }, color = MaterialTheme.colorScheme.surfaceVariant, tonalElevation = 8.dp) {
         Column {
-            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(3.dp), color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.surfaceVariant)
+            LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().height(3.dp), color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.surfaceVariant)
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(Brush.linearGradient(listOf(AccentGradientStart, AccentGradientEnd))), contentAlignment = Alignment.Center) {
                     if (track.albumArtUri != null) { AsyncImage(model = track.albumArtUri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }

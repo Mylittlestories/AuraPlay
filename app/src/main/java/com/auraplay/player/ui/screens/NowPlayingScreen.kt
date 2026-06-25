@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -25,7 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import androidx.compose.animation.core.RepeatMode as AnimRepeatMode
+import com.auraplay.player.audio.MetadataReader
+import com.auraplay.player.audio.TubeAmplifier
+import com.auraplay.player.audio.TrackMetadata
 import com.auraplay.player.data.model.RepeatMode
 import com.auraplay.player.ui.theme.*
 import com.auraplay.player.ui.viewmodel.MainViewModel
@@ -45,109 +48,112 @@ fun NowPlayingScreen(
     val repeatMode by viewModel.repeatMode.collectAsStateWithLifecycle()
     val shuffleEnabled by viewModel.shuffleEnabled.collectAsStateWithLifecycle()
     val playbackSpeed by viewModel.playbackSpeed.collectAsStateWithLifecycle()
+    val ampMode by viewModel.ampMode.collectAsStateWithLifecycle()
 
     val track = currentTrack ?: return
 
+    var showMetadata by remember { mutableStateOf(false) }
+    var trackMetadata by remember { mutableStateOf<TrackMetadata?>(null) }
+
+    // Load metadata when track changes
+    LaunchedEffect(track.id) {
+        trackMetadata = viewModel.getTrackMetadata(track.filePath)
+    }
+
+    // Album art rotation
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
     val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(20000, easing = LinearEasing),
-            repeatMode = AnimRepeatMode.Restart
-        ),
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(animation = tween(20000, easing = LinearEasing), repeatMode = AnimRepeatMode.Restart),
         label = "rotation"
     )
 
     var isSeeking by remember { mutableStateOf(false) }
     var seekPosition by remember { mutableStateOf(0f) }
-
     val progress = if (duration > 0) {
-        if (isSeeking) seekPosition
-        else (currentPosition.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
+        if (isSeeking) seekPosition else (currentPosition.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
     } else 0f
 
     Box(
-        modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(PlayerBackground, Color(0xFF0D0D2B), PlayerBackground))
-        )
+        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(PlayerBackground, Color(0xFF0D0D2B), PlayerBackground)))
     ) {
+        // Blurred album art background
         if (track.albumArtUri != null) {
-            AsyncImage(
-                model = track.albumArtUri,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize().blur(50.dp),
-                contentScale = ContentScale.Crop,
-                alpha = 0.2f
-            )
+            AsyncImage(model = track.albumArtUri, contentDescription = null, modifier = Modifier.fillMaxSize().blur(60.dp), contentScale = ContentScale.Crop, alpha = 0.15f)
         }
 
         Column(
             modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp).pointerInput(Unit) {
                 detectHorizontalDragGestures { _, dragAmount ->
                     if (abs(dragAmount) > 100) {
-                        if (dragAmount > 0) viewModel.skipToPrevious()
-                        else viewModel.skipToNext()
+                        if (dragAmount > 0) viewModel.skipToPrevious() else viewModel.skipToNext()
                     }
                 }
             }
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 48.dp, bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.KeyboardArrowDown, "Back", tint = Color.White, modifier = Modifier.size(32.dp))
-                }
+            // Top Bar
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 48.dp, bottom = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack) { Icon(Icons.Default.KeyboardArrowDown, "Back", tint = Color.White, modifier = Modifier.size(32.dp)) }
                 Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f), letterSpacing = 3.sp)
-                IconButton(onClick = onNavigateToQueue) {
-                    Icon(Icons.Default.QueueMusic, "Queue", tint = Color.White)
-                }
+                IconButton(onClick = { showMetadata = true }) { Icon(Icons.Default.Info, "Info", tint = Color.White) }
             }
 
-            Spacer(modifier = Modifier.weight(0.5f))
+            Spacer(modifier = Modifier.weight(0.3f))
 
+            // === ALBUM ART — Large rotating vinyl ===
             Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) {
+                // Vinyl disc
                 Box(
-                    modifier = Modifier.fillMaxSize(0.95f).rotate(if (isPlaying) rotation else 0f).clip(CircleShape)
+                    modifier = Modifier.fillMaxSize(0.95f)
+                        .rotate(if (isPlaying) rotation else 0f)
+                        .clip(CircleShape)
                         .background(Brush.radialGradient(listOf(Color(0xFF1A1A1A), Color(0xFF0D0D0D), Color(0xFF1A1A1A)))),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Vinyl grooves
+                    for (i in 1..8) {
+                        Box(modifier = Modifier.fillMaxSize(1f - i * 0.1f).clip(CircleShape).background(Color.Transparent))
+                    }
+
+                    // Center album art (large, prominent)
                     Box(
-                        modifier = Modifier.fillMaxSize(0.45f).clip(CircleShape)
-                            .background(Brush.linearGradient(listOf(AccentGradientStart, AccentGradientEnd))),
+                        modifier = Modifier.fillMaxSize(0.50f).clip(CircleShape).background(Brush.linearGradient(listOf(AccentGradientStart, AccentGradientEnd))),
                         contentAlignment = Alignment.Center
                     ) {
                         if (track.albumArtUri != null) {
-                            AsyncImage(model = track.albumArtUri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                            AsyncImage(model = track.albumArtUri, contentDescription = "Album Art", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                         } else {
-                            Icon(Icons.Default.MusicNote, null, tint = Color.White, modifier = Modifier.size(48.dp))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.MusicNote, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(48.dp))
+                                Text("No Art", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.5f))
+                            }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.weight(0.5f))
+            Spacer(modifier = Modifier.weight(0.3f))
 
+            // === TRACK INFO ===
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = track.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(text = "${track.artist} • ${track.album}", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    // Audio quality badge
+                    val qualityText = trackMetadata?.let { "${it.formatName} • ${it.formattedBitrate} • ${it.formattedSampleRate}" } ?: ""
+                    if (qualityText.isNotEmpty()) {
+                        Text(text = qualityText, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.4f), maxLines = 1)
+                    }
                 }
                 IconButton(onClick = { viewModel.toggleFavorite(track.id) }) {
-                    Icon(
-                        if (track.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        "Favorite",
-                        tint = if (track.isFavorite) Color.Red else Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(28.dp)
-                    )
+                    Icon(if (track.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorite", tint = if (track.isFavorite) Color.Red else Color.White.copy(alpha = 0.7f), modifier = Modifier.size(28.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // === PROGRESS ===
             Column {
                 Slider(
                     value = progress,
@@ -162,8 +168,9 @@ fun NowPlayingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // === MAIN CONTROLS ===
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { viewModel.toggleShuffle() }) {
                     Icon(Icons.Default.Shuffle, "Shuffle", tint = if (shuffleEnabled) ShuffleSmart else Color.White.copy(alpha = 0.5f), modifier = Modifier.size(24.dp))
@@ -171,10 +178,8 @@ fun NowPlayingScreen(
                 IconButton(onClick = { viewModel.skipToPrevious() }) {
                     Icon(Icons.Default.SkipPrevious, "Previous", tint = Color.White, modifier = Modifier.size(40.dp))
                 }
-                Box(
-                    modifier = Modifier.size(72.dp).clip(CircleShape).background(Brush.linearGradient(listOf(AccentGradientStart, AccentGradientEnd))).padding(4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                // Big play button
+                Box(modifier = Modifier.size(72.dp).clip(CircleShape).background(Brush.linearGradient(listOf(AccentGradientStart, AccentGradientEnd))).padding(4.dp), contentAlignment = Alignment.Center) {
                     IconButton(onClick = { viewModel.togglePlayPause() }, modifier = Modifier.size(64.dp)) {
                         Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, if (isPlaying) "Pause" else "Play", tint = Color.White, modifier = Modifier.size(40.dp))
                     }
@@ -192,23 +197,41 @@ fun NowPlayingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
+            // === BOTTOM BAR — Speed, Amp, EQ ===
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                // Playback speed
                 TextButton(onClick = {
                     val speeds = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
                     val idx = speeds.indexOf(playbackSpeed).coerceAtLeast(0)
                     viewModel.setPlaybackSpeed(speeds[(idx + 1) % speeds.size])
-                }) {
-                    Text("${playbackSpeed}x", color = if (playbackSpeed != 1.0f) AccentCyan else Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Medium)
+                }) { Text("${playbackSpeed}x", color = if (playbackSpeed != 1.0f) AccentCyan else Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Medium) }
+
+                // Amp mode
+                TextButton(onClick = { viewModel.cycleAmpMode() }) {
+                    Text(ampMode.name.replace("_", " "), color = if (ampMode != TubeAmplifier.AmpMode.OFF) AccentCyan else Color.White.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
                 }
-                Text("${track.formattedBitrate} • ${track.formattedSampleRate}", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.4f))
+
+                // Equalizer
                 IconButton(onClick = onNavigateToEqualizer) {
                     Icon(Icons.Default.Equalizer, "Equalizer", tint = Color.White.copy(alpha = 0.7f))
                 }
             }
-            Spacer(modifier = Modifier.height(32.dp))
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    // Metadata Dialog
+    if (showMetadata) {
+        MetadataDialog(
+            metadata = trackMetadata,
+            albumArtUri = track.albumArtUri,
+            onDismiss = { showMetadata = false },
+            onDownloadArt = { viewModel.downloadAlbumArt(track) },
+            onDownloadLyrics = { viewModel.downloadLyrics(track) }
+        )
     }
 }
 
@@ -218,6 +241,5 @@ fun formatDuration(ms: Long): String {
     val hours = totalSeconds / 3600
     val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
-    return if (hours > 0) "%d:%02d:%02d".format(hours, minutes, seconds)
-    else "%d:%02d".format(minutes, seconds)
+    return if (hours > 0) "%d:%02d:%02d".format(hours, minutes, seconds) else "%d:%02d".format(minutes, seconds)
 }

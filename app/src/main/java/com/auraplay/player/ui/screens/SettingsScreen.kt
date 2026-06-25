@@ -19,7 +19,7 @@ import com.auraplay.player.ui.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: MainViewModel, onNavigateToEqualizer: () -> Unit, onNavigateToShuffleSettings: () -> Unit) {
+fun SettingsScreen(viewModel: MainViewModel, onNavigateToEqualizer: () -> Unit, onNavigateToShuffleSettings: () -> Unit, onNavigateToThemeSettings: () -> Unit = {}) {
     val playbackSpeed by viewModel.playbackSpeed.collectAsStateWithLifecycle()
     val shuffleMode by viewModel.shuffleMode.collectAsStateWithLifecycle()
     val allTracks by viewModel.allTracks.collectAsStateWithLifecycle()
@@ -45,6 +45,11 @@ fun SettingsScreen(viewModel: MainViewModel, onNavigateToEqualizer: () -> Unit, 
         Text("Shuffle", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
         Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
             SettingsItem(icon = Icons.Default.Shuffle, title = "Shuffle Mode", subtitle = getShuffleModeName(shuffleMode), onClick = onNavigateToShuffleSettings)
+        }
+
+        Text("Appearance", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
+        Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
+            SettingsItem(icon = Icons.Default.Palette, title = "Themes", subtitle = "AuraPlay, Winamp, Cyberpunk & more", onClick = onNavigateToThemeSettings)
         }
 
         Spacer(modifier = Modifier.height(32.dp))

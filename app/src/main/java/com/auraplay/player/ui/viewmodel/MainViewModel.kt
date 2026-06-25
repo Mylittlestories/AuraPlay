@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.auraplay.player.audio.AudioEngine
 import com.auraplay.player.audio.AudioPreset
+import com.auraplay.player.audio.MetadataReader
 import com.auraplay.player.audio.ShuffleManager
+import com.auraplay.player.audio.TrackMetadata
+import com.auraplay.player.audio.TubeAmplifier
 import com.auraplay.player.data.model.*
 import com.auraplay.player.data.repository.MusicRepository
 import com.auraplay.player.playback.PlaybackManager
@@ -18,7 +21,9 @@ class MainViewModel @Inject constructor(
     private val repository: MusicRepository,
     val playbackManager: PlaybackManager,
     val audioEngine: AudioEngine,
-    private val shuffleManager: ShuffleManager
+    private val shuffleManager: ShuffleManager,
+    private val metadataReader: MetadataReader,
+    private val tubeAmplifier: TubeAmplifier
 ) : ViewModel() {
 
     // ==================== Library Data ====================
@@ -92,6 +97,8 @@ class MainViewModel @Inject constructor(
     val currentIndex = playbackManager.currentIndex
     val playbackSpeed = playbackManager.playbackSpeed
     val equalizerSettings = audioEngine.equalizerSettings
+    private val _ampMode = MutableStateFlow(TubeAmplifier.AmpMode.OFF)
+    val ampMode: StateFlow<TubeAmplifier.AmpMode> = _ampMode.asStateFlow()
     val bassBoostSettings = audioEngine.bassBoostSettings
     val virtualizerSettings = audioEngine.virtualizerSettings
     val loudnessSettings = audioEngine.loudnessSettings
@@ -310,6 +317,51 @@ class MainViewModel @Inject constructor(
 
     fun setPlaybackSpeed(speed: Float) {
         playbackManager.setPlaybackSpeed(speed)
+    }
+
+    // ==================== Tube Amplifier ====================
+
+    fun cycleAmpMode() {
+        val modes = TubeAmplifier.AmpMode.entries
+        val currentIndex = modes.indexOf(_ampMode.value)
+        val nextMode = modes[(currentIndex + 1) % modes.size]
+        _ampMode.value = nextMode
+        applyAmpMode(nextMode)
+    }
+
+    fun setAmpMode(mode: TubeAmplifier.AmpMode) {
+        _ampMode.value = mode
+        applyAmpMode(mode)
+    }
+
+    private fun applyAmpMode(mode: TubeAmplifier.AmpMode) {
+        val settings = tubeAmplifier.getAmpCurve(mode)
+        settings.bandLevels.forEachIndexed { i, level ->
+            audioEngine.setEqualizerBand(i.toShort(), level.toShort())
+        }
+        audioEngine.setBassBoostStrength(settings.bassBoost.toShort())
+        audioEngine.setVirtualizerStrength(settings.virtualizer.toShort())
+        audioEngine.setLoudnessGain(settings.loudnessGain)
+        if (mode != TubeAmplifier.AmpMode.OFF) {
+            audioEngine.setEqualizerEnabled(true)
+            audioEngine.setBassBoostEnabled(true)
+            audioEngine.setVirtualizerEnabled(true)
+            audioEngine.setLoudnessEnabled(true)
+        }
+    }
+
+    // ==================== Metadata ====================
+
+    fun getTrackMetadata(filePath: String): TrackMetadata? {
+        return try { metadataReader.readMetadata(filePath) } catch (_: Exception) { null }
+    }
+
+    fun downloadAlbumArt(track: com.auraplay.player.data.model.Track) {
+        // TODO: Integrate with MusicBrainz/Cover Art Archive API
+    }
+
+    fun downloadLyrics(track: com.auraplay.player.data.model.Track) {
+        // TODO: Integrate with lyrics API
     }
 
     override fun onCleared() {

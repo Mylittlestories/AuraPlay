@@ -108,6 +108,9 @@ class MainViewModel @Inject constructor(
     val currentIndex = playbackManager.currentIndex
     val playbackSpeed = playbackManager.playbackSpeed
     val equalizerSettings = audioEngine.equalizerSettings
+    val bassBoostSettings = audioEngine.bassBoostSettings
+    val virtualizerSettings = audioEngine.virtualizerSettings
+    val loudnessSettings = audioEngine.loudnessSettings
 
     private val _ampMode = MutableStateFlow(TubeAmplifier.AmpMode.OFF)
     val ampMode: StateFlow<TubeAmplifier.AmpMode> = _ampMode.asStateFlow()

@@ -1,5 +1,4 @@
 package com.auraplay.player.ui.screens
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,152 +20,52 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.auraplay.player.data.model.Track
-import com.auraplay.player.ui.theme.*
+import com.auraplay.player.ui.theme.LocalColors
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
-enum class LibraryTab { TRACKS, ALBUMS, ARTISTS, GENRES, FOLDERS, FAVORITES }
+enum class LibTab { TRACKS, ALBUMS, ARTISTS, FOLDERS, FAVORITES }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryScreen(viewModel: MainViewModel, onNavigateToAlbum: (String) -> Unit, onNavigateToArtist: (String) -> Unit, onNavigateToFolder: (String) -> Unit, onNavigateToNowPlaying: () -> Unit) {
-    val allTracks by viewModel.allTracks.collectAsStateWithLifecycle()
-    val favoriteTracks by viewModel.favoriteTracks.collectAsStateWithLifecycle()
-    var selectedTab by remember { mutableStateOf(LibraryTab.TRACKS) }
+fun LibraryScreen(vm: MainViewModel, onAlbum: (String)->Unit, onArtist: (String)->Unit, onFolder: (String)->Unit, onNP: () -> Unit) {
+    val tracks by vm.tracks.collectAsStateWithLifecycle()
+    val favs by vm.favorites.collectAsStateWithLifecycle()
+    val c = LocalColors.current
+    var tab by remember { mutableStateOf(LibTab.TRACKS) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("Library", fontWeight = FontWeight.Bold) }, actions = { IconButton(onClick = { viewModel.scanForMusic() }) { Icon(Icons.Default.Refresh, "Refresh") } })
-
-        ScrollableTabRow(selectedTabIndex = selectedTab.ordinal, edgePadding = 16.dp, containerColor = MaterialTheme.colorScheme.surface) {
-            LibraryTab.entries.forEach { tab ->
-                Tab(selected = selectedTab == tab, onClick = { selectedTab = tab }, text = { Text(tab.name.lowercase().replaceFirstChar { it.uppercase() }) })
-            }
+    Column(Modifier.fillMaxSize()) {
+        TopAppBar(title = { Text("Library", fontWeight = FontWeight.Bold) }, actions = { IconButton(onClick = { vm.scan() }) { Icon(Icons.Default.Refresh, "Refresh") } })
+        ScrollableTabRow(selectedTabIndex = tab.ordinal, edgePadding = 16.dp, containerColor = c.surface) {
+            LibTab.entries.forEach { t -> Tab(selected = tab == t, onClick = { tab = t }, text = { Text(t.name.lowercase().replaceFirstChar { it.uppercase() }) }) }
         }
-
-        when (selectedTab) {
-            LibraryTab.TRACKS -> {
-                LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
-                    item {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = { viewModel.playAll(allTracks); onNavigateToNowPlaying() }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.PlayArrow, null); Spacer(modifier = Modifier.width(4.dp)); Text("Play All") }
-                            OutlinedButton(onClick = { viewModel.shuffleAll(); onNavigateToNowPlaying() }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Shuffle, null); Spacer(modifier = Modifier.width(4.dp)); Text("Shuffle") }
-                        }
-                    }
-                    items(allTracks) { track -> TrackListItem(track = track, onClick = { viewModel.playTrack(track); onNavigateToNowPlaying() }, onMoreClick = { }) }
-                }
+        when (tab) {
+            LibTab.TRACKS -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+                item { Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { vm.playAll(tracks); onNP() }, Modifier.weight(1f)) { Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(4.dp)); Text("Play All") }
+                    OutlinedButton(onClick = { vm.shuffleAll(); onNP() }, Modifier.weight(1f)) { Icon(Icons.Default.Shuffle, null); Spacer(Modifier.width(4.dp)); Text("Shuffle") }
+                } }
+                items(tracks) { t -> TrackRow(t, { vm.play(t); onNP() }) }
             }
-            LibraryTab.ALBUMS -> {
-                val albumGroups = allTracks.groupBy { it.album }
-                LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
-                    items(albumGroups.entries.toList()) { (albumName, tracks) ->
-                        AlbumListItem(albumName = albumName, artist = tracks.firstOrNull()?.artist ?: "", trackCount = tracks.size, artUri = tracks.firstOrNull()?.albumArtUri, onClick = { onNavigateToAlbum(albumName) })
-                    }
-                }
-            }
-            LibraryTab.ARTISTS -> {
-                val artistGroups = allTracks.groupBy { it.artist }
-                LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
-                    items(artistGroups.entries.toList()) { (name, tracks) ->
-                        ArtistListItem(name = name, trackCount = tracks.size, albumCount = tracks.map { it.album }.distinct().size, artUri = tracks.firstOrNull()?.albumArtUri, onClick = { onNavigateToArtist(name) })
-                    }
-                }
-            }
-            LibraryTab.GENRES -> {
-                val genreGroups = allTracks.filter { it.genre.isNotEmpty() }.groupBy { it.genre }
-                LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
-                    items(genreGroups.entries.toList()) { (name, tracks) ->
-                        GenreListItem(name = name, trackCount = tracks.size, onClick = { viewModel.playAll(tracks); onNavigateToNowPlaying() })
-                    }
-                }
-            }
-            LibraryTab.FOLDERS -> {
-                val folderGroups = allTracks.groupBy { it.folderName }
-                LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
-                    items(folderGroups.entries.toList()) { (name, tracks) ->
-                        FolderListItem(name = name, trackCount = tracks.size, onClick = { onNavigateToFolder(name) })
-                    }
-                }
-            }
-            LibraryTab.FAVORITES -> {
-                if (favoriteTracks.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.FavoriteBorder, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text("No favorites yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
-                        item {
-                            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(onClick = { viewModel.playAll(favoriteTracks); onNavigateToNowPlaying() }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.PlayArrow, null); Spacer(modifier = Modifier.width(4.dp)); Text("Play All") }
-                                OutlinedButton(onClick = { viewModel.playAll(favoriteTracks, shuffle = true); onNavigateToNowPlaying() }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Shuffle, null); Spacer(modifier = Modifier.width(4.dp)); Text("Shuffle") }
-                            }
-                        }
-                        items(favoriteTracks) { track -> TrackListItem(track = track, onClick = { viewModel.playTrack(track, favoriteTracks); onNavigateToNowPlaying() }, onMoreClick = { }) }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun AlbumListItem(albumName: String, artist: String, trackCount: Int, artUri: String?, onClick: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)).background(Brush.linearGradient(listOf(AccentGradientStart, AccentGradientEnd))), contentAlignment = Alignment.Center) {
-                if (artUri != null) { AsyncImage(model = artUri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
-                else { Icon(Icons.Default.Album, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(28.dp)) }
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(albumName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("$artist • $trackCount tracks", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-            Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
-@Composable
-fun ArtistListItem(name: String, trackCount: Int, albumCount: Int, artUri: String?, onClick: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(28.dp)).background(Brush.linearGradient(listOf(AccentBlue, AccentCyan))), contentAlignment = Alignment.Center) {
-                if (artUri != null) { AsyncImage(model = artUri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
-                else { Icon(Icons.Default.Person, null, tint = Color.White, modifier = Modifier.size(28.dp)) }
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                Text("$albumCount albums • $trackCount tracks", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
-@Composable
-fun GenreListItem(name: String, trackCount: Int, onClick: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Brush.linearGradient(listOf(AccentPurple, Color(0xFFE91E63)))), contentAlignment = Alignment.Center) { Icon(Icons.Default.Category, null, tint = Color.White, modifier = Modifier.size(24.dp)) }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) { Text(name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold); Text("$trackCount tracks", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        }
-    }
-}
-
-@Composable
-fun FolderListItem(name: String, trackCount: Int, onClick: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) { Icon(Icons.Default.Folder, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp)) }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) { Text(name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold); Text("$trackCount tracks", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            LibTab.ALBUMS -> { val g = tracks.groupBy { it.album }; LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
+                items(g.entries.toList()) { (n, ts) -> Surface(Modifier.fillMaxWidth().clickable { onAlbum(n) }) { Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)).background(Brush.linearGradient(listOf(c.primary, c.secondary))), contentAlignment = Alignment.Center) { if (ts.first().albumArtUri != null) AsyncImage(ts.first().albumArtUri, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) else Icon(Icons.Default.Album, null, tint = Color.White, modifier = Modifier.size(28.dp)) }
+                    Spacer(Modifier.width(16.dp)); Column(Modifier.weight(1f)) { Text(n, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, color = c.text); Text("${ts.first().artist} • ${ts.size} tracks", style = MaterialTheme.typography.bodySmall, color = c.text2) }; Icon(Icons.Default.ChevronRight, null, tint = c.text3)
+                } } }
+            } }
+            LibTab.ARTISTS -> { val g = tracks.groupBy { it.artist }; LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+                items(g.entries.toList()) { (n, ts) -> Surface(Modifier.fillMaxWidth().clickable { onArtist(n) }) { Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(56.dp).clip(RoundedCornerShape(28.dp)).background(Brush.linearGradient(listOf(c.secondary, c.accent))), contentAlignment = Alignment.Center) { Icon(Icons.Default.Person, null, tint = Color.White, modifier = Modifier.size(28.dp)) }
+                    Spacer(Modifier.width(16.dp)); Column(Modifier.weight(1f)) { Text(n, fontWeight = FontWeight.SemiBold, color = c.text); Text("${ts.map{it.album}.distinct().size} albums • ${ts.size} tracks", style = MaterialTheme.typography.bodySmall, color = c.text2) }; Icon(Icons.Default.ChevronRight, null, tint = c.text3)
+                } } }
+            } }
+            LibTab.FOLDERS -> { val g = tracks.groupBy { it.folderName }; LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+                items(g.entries.toList()) { (n, ts) -> Surface(Modifier.fillMaxWidth().clickable { onFolder(n) }) { Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(c.surfaceVar), contentAlignment = Alignment.Center) { Icon(Icons.Default.Folder, null, tint = c.primary, modifier = Modifier.size(24.dp)) }
+                    Spacer(Modifier.width(16.dp)); Column(Modifier.weight(1f)) { Text(n, fontWeight = FontWeight.SemiBold, color = c.text); Text("${ts.size} tracks", style = MaterialTheme.typography.bodySmall, color = c.text2) }; Icon(Icons.Default.ChevronRight, null, tint = c.text3)
+                } } }
+            } }
+            LibTab.FAVORITES -> if (favs.isEmpty()) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.FavoriteBorder, null, Modifier.size(64.dp), tint = c.text3); Text("No favorites yet", color = c.text2) } }
+            else LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) { items(favs) { t -> TrackRow(t, { vm.play(t, favs); onNP() }) } }
         }
     }
 }

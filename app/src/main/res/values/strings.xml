@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AuraPlay</string>
+    <string name="app_description">AuraPlay is a premium offline music player with professional audio quality, advanced equalizer, tube amplifier simulation, and beautiful Material Design. 100% offline — no internet required. Your music, your privacy.</string>
+
     <string name="now_playing">Now Playing</string>
     <string name="queue">Queue</string>
     <string name="equalizer">Equalizer</string>
@@ -20,4 +22,11 @@
     <string name="recently_played">Recently Played</string>
     <string name="most_played">Most Played</string>
     <string name="recently_added">Recently Added</string>
+    <string name="permission_rationale">AuraPlay needs access to your music library to play your songs. Your data never leaves your device.</string>
+    <string name="grant_permission">Grant Access to Music</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="sleep_timer">Sleep Timer</string>
+    <string name="about">About</string>
+    <string name="version">Version 1.0.0</string>
+    <string name="privacy_policy">This app does not collect, store, or transmit any personal data. All music files are accessed locally on your device. No internet connection is required or used.</string>
 </resources>

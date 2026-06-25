@@ -55,6 +55,7 @@ fun NowPlayingScreen(
     val track = currentTrack ?: return
 
     var showMetadata by remember { mutableStateOf(false) }
+    var showSleepTimer by remember { mutableStateOf(false) }
     var trackMetadata by remember { mutableStateOf<TrackMetadata?>(null) }
 
     // Load metadata when track changes
@@ -97,7 +98,10 @@ fun NowPlayingScreen(
             Row(modifier = Modifier.fillMaxWidth().padding(top = 48.dp, bottom = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) { Icon(Icons.Default.KeyboardArrowDown, "Back", tint = Color.White, modifier = Modifier.size(32.dp)) }
                 Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f), letterSpacing = 3.sp)
-                IconButton(onClick = { showMetadata = true }) { Icon(Icons.Default.Info, "Info", tint = Color.White) }
+                Row {
+                    IconButton(onClick = { showSleepTimer = true }) { Icon(Icons.Default.Bedtime, "Sleep Timer", tint = Color.White) }
+                    IconButton(onClick = { showMetadata = true }) { Icon(Icons.Default.Info, "Info", tint = Color.White) }
+                }
             }
 
             Spacer(modifier = Modifier.weight(0.3f))
@@ -239,6 +243,19 @@ fun NowPlayingScreen(
             onDismiss = { showMetadata = false },
             onDownloadArt = { viewModel.downloadAlbumArt(track) },
             onDownloadLyrics = { viewModel.downloadLyrics(track) }
+        )
+    }
+
+    // Sleep Timer Dialog
+    if (showSleepTimer) {
+        val isTimerRunning by viewModel.sleepTimerRunning.collectAsStateWithLifecycle()
+        val timerRemaining by viewModel.sleepTimerRemaining.collectAsStateWithLifecycle()
+        SleepTimerDialog(
+            isRunning = isTimerRunning,
+            remainingTime = viewModel.getSleepTimerFormatted(),
+            onStart = { viewModel.startSleepTimer(it) },
+            onCancel = { viewModel.cancelSleepTimer() },
+            onDismiss = { showSleepTimer = false }
         )
     }
 }

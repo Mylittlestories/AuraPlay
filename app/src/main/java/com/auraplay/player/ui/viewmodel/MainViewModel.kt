@@ -7,6 +7,7 @@ import com.auraplay.player.audio.AudioEngine
 import com.auraplay.player.audio.AudioPreset
 import com.auraplay.player.audio.MetadataReader
 import com.auraplay.player.audio.ShuffleManager
+import com.auraplay.player.audio.SleepTimer
 import com.auraplay.player.audio.TrackMetadata
 import com.auraplay.player.audio.TubeAmplifier
 import com.auraplay.player.data.model.*
@@ -26,7 +27,8 @@ class MainViewModel @Inject constructor(
     val audioEngine: AudioEngine,
     private val shuffleManager: ShuffleManager,
     private val metadataReader: MetadataReader,
-    private val tubeAmplifier: TubeAmplifier
+    private val tubeAmplifier: TubeAmplifier,
+    private val sleepTimer: SleepTimer
 ) : AndroidViewModel(application) {
 
     // ==================== Theme ====================
@@ -273,4 +275,16 @@ class MainViewModel @Inject constructor(
 
     fun downloadAlbumArt(track: Track) { /* TODO: MusicBrainz API */ }
     fun downloadLyrics(track: Track) { /* TODO: Lyrics API */ }
+
+    // ==================== Sleep Timer ====================
+    val sleepTimerRunning = sleepTimer.isRunning
+    val sleepTimerRemaining = sleepTimer.remainingMs
+
+    fun startSleepTimer(durationMs: Long) {
+        sleepTimer.onTimerFinished = { pause() }
+        sleepTimer.start(durationMs)
+    }
+
+    fun cancelSleepTimer() = sleepTimer.cancel()
+    fun getSleepTimerFormatted(): String = sleepTimer.formattedRemaining
 }

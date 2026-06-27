@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.auraplay.player.app-mergeDebugResources-63:/values-gl/values-gl.xml",
+            "outputFile": "com.auraplay.player.app-mergeDebugResources-67:/values-gl/values-gl.xml",
             "map": [
                 {
                     "source": "/home/user/.gradle/caches/transforms-3/5e88aecb9e30f0694e400bd052f27f34/transformed/core-1.12.0/res/values-gl/values-gl.xml",

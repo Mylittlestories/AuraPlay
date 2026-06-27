@@ -1,18 +1,18 @@
 [
     {
-        "merged": "com.auraplay.player.app-merged_res-65:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
-        "source": "com.auraplay.player.app-main-67:/mipmap-anydpi-v26/ic_launcher_round.xml"
+        "merged": "com.auraplay.player.app-merged_res-69:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "com.auraplay.player.app-main-71:/mipmap-xxhdpi/ic_launcher.png"
     },
     {
-        "merged": "com.auraplay.player.app-merged_res-65:/drawable_ic_launcher_foreground.xml.flat",
-        "source": "com.auraplay.player.app-main-67:/drawable/ic_launcher_foreground.xml"
+        "merged": "com.auraplay.player.app-merged_res-69:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "com.auraplay.player.app-main-71:/mipmap-xxhdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.auraplay.player.app-merged_res-65:/drawable_ic_splash_logo.xml.flat",
-        "source": "com.auraplay.player.app-main-67:/drawable/ic_splash_logo.xml"
+        "merged": "com.auraplay.player.app-merged_res-69:/drawable_ic_splash_logo.xml.flat",
+        "source": "com.auraplay.player.app-main-71:/drawable/ic_splash_logo.xml"
     },
     {
-        "merged": "com.auraplay.player.app-merged_res-65:/mipmap-anydpi-v26_ic_launcher.xml.flat",
-        "source": "com.auraplay.player.app-main-67:/mipmap-anydpi-v26/ic_launcher.xml"
+        "merged": "com.auraplay.player.app-merged_res-69:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.auraplay.player.app-main-71:/drawable/ic_launcher_foreground.xml"
     }
 ]

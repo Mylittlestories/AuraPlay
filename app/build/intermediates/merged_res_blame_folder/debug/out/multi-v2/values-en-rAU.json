@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.auraplay.player.app-mergeDebugResources-63:/values-en-rAU/values-en-rAU.xml",
+            "outputFile": "com.auraplay.player.app-mergeDebugResources-67:/values-en-rAU/values-en-rAU.xml",
             "map": [
                 {
                     "source": "/home/user/.gradle/caches/transforms-3/5d9dfa5690fc464560456ba7fc08bee0/transformed/jetified-material3-1.1.2/res/values-en-rAU/values-en-rAU.xml",

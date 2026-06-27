@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.auraplay.player.app-mergeDebugResources-63:/values-am/values-am.xml",
+            "outputFile": "com.auraplay.player.app-mergeDebugResources-67:/values-am/values-am.xml",
             "map": [
                 {
                     "source": "/home/user/.gradle/caches/transforms-3/9e5ce6775827668022f84b846dc5ada4/transformed/jetified-media3-session-1.2.0/res/values-am/values-am.xml",

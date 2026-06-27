@@ -1,4 +1,11 @@
 com.auraplay.player
+anim fragment_fast_out_extra_slow_in
+animator fragment_close_enter
+animator fragment_close_exit
+animator fragment_fade_enter
+animator fragment_fade_exit
+animator fragment_open_enter
+animator fragment_open_exit
 array exo_controls_playback_speeds
 attr action
 attr ad_marker_color
@@ -412,6 +419,7 @@ id fit
 id fixed_height
 id fixed_width
 id forever
+id fragment_container_view_tag
 id hide_ime_id
 id hide_in_inspector_tag
 id icon
@@ -438,6 +446,7 @@ id pooling_container_listener_holder_tag
 id report_drawn
 id right_icon
 id right_side
+id special_effects_controller_view_tag
 id spherical_gl_surface_view
 id splashscreen_icon_view
 id status_bar_latest_event_content
@@ -465,6 +474,7 @@ id view_tree_lifecycle_owner
 id view_tree_on_back_pressed_dispatcher_owner
 id view_tree_saved_state_registry_owner
 id view_tree_view_model_store_owner
+id visible_removing_fragment_view_tag
 id when_playing
 id wrapped_composition_tag
 id zoom
@@ -745,6 +755,8 @@ styleable ColorStateListItem android_color android_alpha android_lStar alpha lSt
 styleable DefaultTimeBar ad_marker_color ad_marker_width bar_gravity bar_height buffered_color played_ad_marker_color played_color scrubber_color scrubber_disabled_size scrubber_dragged_size scrubber_drawable scrubber_enabled_size touch_target_height unplayed_color
 styleable FontFamily fontProviderAuthority fontProviderCerts fontProviderFetchStrategy fontProviderFetchTimeout fontProviderPackage fontProviderQuery fontProviderSystemFontFamily
 styleable FontFamilyFont android_font android_fontWeight android_fontStyle android_ttcIndex android_fontVariationSettings font fontStyle fontVariationSettings fontWeight ttcIndex
+styleable Fragment android_name android_id android_tag
+styleable FragmentContainerView android_name android_tag
 styleable GradientColor android_startColor android_endColor android_type android_centerX android_centerY android_gradientRadius android_tileMode android_centerColor android_startX android_startY android_endX android_endY
 styleable GradientColorItem android_color android_offset
 styleable LegacyPlayerControlView ad_marker_color ad_marker_width bar_gravity bar_height buffered_color controller_layout_id played_ad_marker_color played_color repeat_toggle_modes scrubber_color scrubber_disabled_size scrubber_dragged_size scrubber_drawable scrubber_enabled_size show_fastforward_button show_next_button show_previous_button show_rewind_button show_shuffle_button show_timeout time_bar_min_update_interval touch_target_height unplayed_color

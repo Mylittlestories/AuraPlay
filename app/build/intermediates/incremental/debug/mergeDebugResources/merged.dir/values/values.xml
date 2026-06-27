@@ -309,6 +309,7 @@
     <item name="exo_subtitles" type="id"/>
     <item name="exo_time" type="id"/>
     <item name="exo_vr" type="id"/>
+    <item name="fragment_container_view_tag" type="id"/>
     <item name="hide_in_inspector_tag" type="id"/>
     <item name="inspection_slot_table_set" type="id"/>
     <item name="is_pooling_container_tag" type="id"/>
@@ -319,6 +320,7 @@
     <item name="nav_controller_view_tag" type="id"/>
     <item name="pooling_container_listener_holder_tag" type="id"/>
     <item name="report_drawn" type="id"/>
+    <item name="special_effects_controller_view_tag" type="id"/>
     <item name="tag_accessibility_actions" type="id"/>
     <item name="tag_accessibility_clickable_spans" type="id"/>
     <item name="tag_accessibility_heading" type="id"/>
@@ -339,6 +341,7 @@
     <id name="view_tree_on_back_pressed_dispatcher_owner"/>
     <id name="view_tree_saved_state_registry_owner"/>
     <id name="view_tree_view_model_store_owner"/>
+    <item name="visible_removing_fragment_view_tag" type="id"/>
     <item name="wrapped_composition_tag" type="id"/>
     <integer name="cancel_button_image_alpha">127</integer>
     <integer name="default_icon_animation_duration">10000</integer>
@@ -883,6 +886,15 @@
         <attr name="android:fontWeight"/>
         <attr name="android:fontVariationSettings"/>
         <attr name="android:ttcIndex"/>
+    </declare-styleable>
+    <declare-styleable name="Fragment">
+        <attr name="android:name"/>
+        <attr name="android:id"/>
+        <attr name="android:tag"/>
+    </declare-styleable>
+    <declare-styleable name="FragmentContainerView">
+        <attr name="android:name"/>
+        <attr name="android:tag"/>
     </declare-styleable>
     <declare-styleable name="GradientColor">
         

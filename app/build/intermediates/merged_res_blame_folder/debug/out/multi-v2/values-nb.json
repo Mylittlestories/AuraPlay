@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.auraplay.player.app-mergeDebugResources-63:/values-nb/values-nb.xml",
+            "outputFile": "com.auraplay.player.app-mergeDebugResources-67:/values-nb/values-nb.xml",
             "map": [
                 {
                     "source": "/home/user/.gradle/caches/transforms-3/c3dfbb79dc5a1faab48ea190e71b0728/transformed/jetified-media3-ui-1.2.0/res/values-nb/values-nb.xml",

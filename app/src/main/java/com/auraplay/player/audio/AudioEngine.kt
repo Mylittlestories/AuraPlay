@@ -8,6 +8,7 @@ import android.media.audiofx.LoudnessEnhancer
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 data class EqualizerState(
     val bands: List<EqualizerBand> = emptyList(),

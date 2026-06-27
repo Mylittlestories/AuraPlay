@@ -8,12 +8,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.auraplay.player.MainActivity
-import com.auraplay.player.R
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 
 class PlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
@@ -30,9 +32,9 @@ class PlaybackService : MediaSessionService() {
                 override fun onAddMediaItems(
                     mediaSession: MediaSession,
                     controller: MediaSession.ControllerInfo,
-                    mediaItems: MutableList<androidx.media3.common.MediaItem>
-                ): MutableList<androidx.media3.common.MediaItem> {
-                    return mediaItems
+                    mediaItems: MutableList<MediaItem>
+                ): ListenableFuture<MutableList<MediaItem>> {
+                    return Futures.immediateFuture(mediaItems)
                 }
             })
             .build()

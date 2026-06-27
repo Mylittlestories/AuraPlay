@@ -108,6 +108,9 @@ dependencies {
     // DataStore for preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+    // Guava (needed for ListenableFuture in Media3 session)
+    implementation("com.google.guava:guava:32.1.3-android")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

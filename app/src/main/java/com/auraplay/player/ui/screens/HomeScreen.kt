@@ -21,6 +21,7 @@ import com.auraplay.player.data.model.Track
 import com.auraplay.player.ui.components.MiniPlayer
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
     val libraryState by viewModel.libraryState.collectAsState()
@@ -169,7 +170,7 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(libraryState.albums.take(10)) { album ->
-                            Chip(onClick = { navController.navigate("album_detail/$album") },
+                            SuggestionChip(onClick = { navController.navigate("album_detail/$album") },
                                 label = { Text(album, maxLines = 1, overflow = TextOverflow.Ellipsis) })
                         }
                     }
@@ -185,7 +186,7 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(libraryState.artists.take(10)) { artist ->
-                            Chip(onClick = { navController.navigate("artist_detail/$artist") },
+                            SuggestionChip(onClick = { navController.navigate("artist_detail/$artist") },
                                 label = { Text(artist, maxLines = 1, overflow = TextOverflow.Ellipsis) })
                         }
                     }

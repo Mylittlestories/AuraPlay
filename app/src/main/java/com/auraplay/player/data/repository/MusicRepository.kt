@@ -126,9 +126,7 @@ class MusicRepository @Inject constructor(
                     val genreName = genreCursor.getString(nameCol) ?: continue
                     if (genreName.isBlank()) continue
 
-                    val membersUri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Genres.Members.getContentUri("external"), genreId
-                    )
+                    val membersUri = MediaStore.Audio.Genres.Members.getContentUri("external", genreId)
                     contentResolver.query(
                         membersUri,
                         arrayOf(MediaStore.Audio.Genres.Members.AUDIO_ID),

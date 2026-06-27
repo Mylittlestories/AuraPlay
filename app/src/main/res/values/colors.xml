@@ -2,8 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="purple_primary">#FF9C27B0</color>
-    <color name="purple_dark">#FF4A148C</color>
-    <color name="dark_background">#FF0D0D1A</color>
-    <color name="dark_surface">#FF1A1A2E</color>
+    <color name="dark_background">#FF101018</color>
+    <color name="dark_surface">#FF1B1B28</color>
+    <color name="teal_primary">#FF4ECDC4</color>
+    <color name="amber_secondary">#FFFFB347</color>
 </resources>

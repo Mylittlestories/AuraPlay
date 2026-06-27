@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.auraplay.player.data.model.Track
+import com.auraplay.player.ui.theme.*
 
 @Composable
 fun MiniPlayer(
@@ -30,59 +31,79 @@ fun MiniPlayer(
     if (track == null) return
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 4.dp
+        modifier = modifier.fillMaxWidth(),
+        color = MiniPlayerBg,
+        tonalElevation = 8.dp,
+        shadowElevation = 12.dp
     ) {
         Column {
-            // Progress bar
+            // Progress bar — thin teal line
             LinearProgressIndicator(
-                progress = if (duration > 0) (progress.toFloat() / duration) else 0f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(2.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                progress = { if (duration > 0) (progress.toFloat() / duration.toFloat()) else 0f },
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color = Primary,
+                trackColor = MiniPlayerTrack
             )
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = onClick)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Small album icon
+                Surface(
+                    modifier = Modifier.size(42.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = PrimaryContainer
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Default.MusicNote,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
                 // Track info
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = track.title,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        color = TextPrimary
                     )
                     Text(
                         text = track.artist,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = TextSecondary
                     )
                 }
 
-                // Controls
-                IconButton(onClick = onSkipPrevious, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Default.SkipPrevious, "Previous")
+                // Controls — teal accent
+                IconButton(onClick = onSkipPrevious, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Default.SkipPrevious, "Previous", tint = TextSecondary, modifier = Modifier.size(22.dp))
                 }
 
-                IconButton(onClick = onTogglePlay, modifier = Modifier.size(40.dp)) {
+                IconButton(onClick = onTogglePlay, modifier = Modifier.size(42.dp)) {
                     Icon(
                         if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        if (isPlaying) "Pause" else "Play"
+                        if (isPlaying) "Pause" else "Play",
+                        tint = Primary,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
-                IconButton(onClick = onSkipNext, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Default.SkipNext, "Next")
+                IconButton(onClick = onSkipNext, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Default.SkipNext, "Next", tint = TextSecondary, modifier = Modifier.size(22.dp))
                 }
             }
         }

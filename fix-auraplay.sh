@@ -2,7 +2,7 @@
 cd AuraPlay
 
 # Delete ALL old source files
-rm -rf app/src/main/java/com/auraplay/player/*
+# rm -rf app/src/main/java/com/auraplay/player/*
 
 # Copy new files (the workspace already has them)
 # After copying, do:

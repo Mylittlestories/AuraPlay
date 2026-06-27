@@ -5,6 +5,7 @@ import androidx.media3.common.*
 import androidx.media3.exoplayer.ExoPlayer
 import com.auraplay.player.data.model.RepeatMode
 import com.auraplay.player.data.model.Track
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
@@ -12,7 +13,7 @@ import javax.inject.Singleton
 
 @Singleton
 class PlaybackManager @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     private val player: ExoPlayer = ExoPlayer.Builder(context).build()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)

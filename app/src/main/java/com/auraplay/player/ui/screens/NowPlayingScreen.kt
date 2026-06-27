@@ -93,7 +93,7 @@ fun NowPlayingScreen(viewModel: MainViewModel = hiltViewModel()) {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Slider(
                     value = if (playbackState.duration > 0)
-                        playbackState.progress.toFloat() / playbackState.duration.toFloat()
+                        (playbackState.progress.toFloat() / playbackState.duration.toFloat()).coerceIn(0f, 1f)
                     else 0f,
                     onValueChange = { viewModel.seekToFraction(it) },
                     modifier = Modifier.fillMaxWidth(),

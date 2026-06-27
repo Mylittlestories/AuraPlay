@@ -66,41 +66,42 @@ class MusicRepository @Inject constructor(
         val sortOrder = "${MediaStore.Audio.Media.TITLE} COLLATE NOCASE"
 
         contentResolver.query(collection, projection, selection, null, sortOrder)?.use { cursor ->
-            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val albumIdCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-            val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-            val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-            val yearCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
-            val trackCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
-            val dateAddedCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+            val idCol = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
+            val titleCol = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
+            val artistCol = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+            val albumCol = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+            val albumIdCol = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+            val durationCol = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+            val dataCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
+            val yearCol = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
+            val trackCol = cursor.getColumnIndex(MediaStore.Audio.Media.TRACK)
+            val dateAddedCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
+
+            if (idCol < 0 || titleCol < 0 || dataCol < 0 || durationCol < 0) return@use
 
             while (cursor.moveToNext()) {
                 val data = cursor.getString(dataCol) ?: continue
                 val duration = cursor.getLong(durationCol)
                 if (duration < 5000) continue // skip <5s files
 
-                val id = cursor.getLong(idCol)
                 val filePath = data
                 val folder = filePath.substringBeforeLast("/")
                 val genre = genreMap[id] ?: ""
 
                 tracks.add(
                     Track(
-                        id = id,
-                        title = cursor.getString(titleCol) ?: "Unknown",
-                        artist = cursor.getString(artistCol) ?: "Unknown Artist",
-                        album = cursor.getString(albumCol) ?: "Unknown Album",
-                        albumId = cursor.getLong(albumIdCol),
+                        id = cursor.getLong(idCol),
+                        title = if (titleCol >= 0) cursor.getString(titleCol) ?: "Unknown" else "Unknown",
+                        artist = if (artistCol >= 0) cursor.getString(artistCol) ?: "Unknown Artist" else "Unknown Artist",
+                        album = if (albumCol >= 0) cursor.getString(albumCol) ?: "Unknown Album" else "Unknown Album",
+                        albumId = if (albumIdCol >= 0) cursor.getLong(albumIdCol) else 0L,
                         genre = genre,
                         duration = duration,
                         data = filePath,
                         folder = folder,
-                        year = try { cursor.getInt(yearCol) } catch (_: Exception) { 0 },
-                        trackNumber = try { cursor.getInt(trackCol) % 1000 } catch (_: Exception) { 0 },
-                        dateAdded = cursor.getLong(dateAddedCol) * 1000
+                        year = if (yearCol >= 0) cursor.getInt(yearCol) else 0,
+                        trackNumber = if (trackCol >= 0) cursor.getInt(trackCol) % 1000 else 0,
+                        dateAdded = if (dateAddedCol >= 0) cursor.getLong(dateAddedCol) * 1000 else 0L
                     )
                 )
             }
@@ -118,8 +119,9 @@ class MusicRepository @Inject constructor(
                 arrayOf(MediaStore.Audio.Genres._ID, MediaStore.Audio.Genres.NAME),
                 null, null, null
             )?.use { genreCursor ->
-                val idCol = genreCursor.getColumnIndexOrThrow(MediaStore.Audio.Genres._ID)
-                val nameCol = genreCursor.getColumnIndexOrThrow(MediaStore.Audio.Genres.NAME)
+                val idCol = genreCursor.getColumnIndex(MediaStore.Audio.Genres._ID)
+                val nameCol = genreCursor.getColumnIndex(MediaStore.Audio.Genres.NAME)
+                if (idCol < 0 || nameCol < 0) return@use
 
                 while (genreCursor.moveToNext()) {
                     val genreId = genreCursor.getLong(idCol)
@@ -132,9 +134,10 @@ class MusicRepository @Inject constructor(
                         arrayOf(MediaStore.Audio.Genres.Members.AUDIO_ID),
                         null, null, null
                     )?.use { memberCursor ->
-                        val audioIdCol = memberCursor.getColumnIndexOrThrow(
+                        val audioIdCol = memberCursor.getColumnIndex(
                             MediaStore.Audio.Genres.Members.AUDIO_ID
                         )
+                        if (audioIdCol < 0) return@use
                         while (memberCursor.moveToNext()) {
                             genreMap[memberCursor.getLong(audioIdCol)] = genreName
                         }

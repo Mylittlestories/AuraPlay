@@ -15,7 +15,7 @@ import javax.inject.Singleton
 class PlaybackManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val player: ExoPlayer = ExoPlayer.Builder(context).build()
+    private var player: ExoPlayer? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _currentTrack = MutableStateFlow<Track?>(null)
@@ -51,7 +51,8 @@ class PlaybackManager @Inject constructor(
             if (playbackState == Player.STATE_ENDED) {
                 advanceQueue()
             }
-            _duration.value = if (player.duration > 0) player.duration else 0L
+            val p = player ?: return
+            _duration.value = if (p.duration > 0) p.duration else 0L
         }
 
         override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
@@ -68,24 +69,31 @@ class PlaybackManager @Inject constructor(
         }
     }
 
-    init {
-        player.addListener(listener)
-        player.repeatMode = Player.REPEAT_MODE_OFF
-
-        // Auto-update progress
-        scope.launch {
-            while (isActive) {
-                if (player.isPlaying) {
-                    _progress.value = player.currentPosition
-                    if (player.duration > 0) _duration.value = player.duration
+    private fun ensurePlayer(): ExoPlayer {
+        if (player == null) {
+            player = ExoPlayer.Builder(context).build().also {
+                it.addListener(listener)
+                it.repeatMode = Player.REPEAT_MODE_OFF
+            }
+            // Restart progress updates
+            scope.launch {
+                while (isActive) {
+                    player?.let { p ->
+                        if (p.isPlaying) {
+                            _progress.value = p.currentPosition
+                            if (p.duration > 0) _duration.value = p.duration
+                        }
+                    }
+                    delay(500)
                 }
-                delay(500)
             }
         }
+        return player!!
     }
 
     fun playTrack(track: Track) {
         _currentTrack.value = track
+        val p = ensurePlayer()
         val mediaItem = MediaItem.Builder()
             .setUri(track.data)
             .setMediaMetadata(
@@ -96,9 +104,9 @@ class PlaybackManager @Inject constructor(
                     .build()
             )
             .build()
-        player.setMediaItem(mediaItem)
-        player.prepare()
-        player.playWhenReady = true
+        p.setMediaItem(mediaItem)
+        p.prepare()
+        p.playWhenReady = true
         _duration.value = track.duration
     }
 
@@ -125,30 +133,20 @@ class PlaybackManager @Inject constructor(
         }
     }
 
-    fun moveInQueue(from: Int, to: Int) {
-        val currentQueue = _queue.value.toMutableList()
-        if (from in currentQueue.indices && to in currentQueue.indices) {
-            val item = currentQueue.removeAt(from)
-            currentQueue.add(to, item)
-            _queue.value = currentQueue
-            if (from == _queueIndex.value) _queueIndex.value = to
-            else if (from < _queueIndex.value && to >= _queueIndex.value) _queueIndex.value -= 1
-            else if (from > _queueIndex.value && to <= _queueIndex.value) _queueIndex.value += 1
-        }
-    }
-
     fun togglePlayPause() {
-        if (player.isPlaying) player.pause() else player.play()
+        val p = player ?: return
+        if (p.isPlaying) p.pause() else p.play()
     }
 
     fun seekTo(position: Long) {
-        player.seekTo(position)
+        player?.seekTo(position)
         _progress.value = position
     }
 
     fun seekToFraction(fraction: Float) {
-        val dur = if (player.duration > 0) player.duration else 1L
-        seekTo((fraction * dur).toLong())
+        val p = player ?: return
+        val dur = if (p.duration > 0) p.duration else 1L
+        seekTo((fraction.coerceIn(0f, 1f) * dur).toLong())
     }
 
     fun skipNext() {
@@ -156,8 +154,9 @@ class PlaybackManager @Inject constructor(
     }
 
     fun skipPrevious() {
-        if (player.currentPosition > 3000) {
-            player.seekTo(0)
+        val p = player ?: return
+        if (p.currentPosition > 3000) {
+            p.seekTo(0)
         } else {
             val idx = _queueIndex.value - 1
             if (idx >= 0 && idx < _queue.value.size) {
@@ -174,8 +173,8 @@ class PlaybackManager @Inject constructor(
 
         when (_repeatMode.value) {
             RepeatMode.ONE -> {
-                player.seekTo(0)
-                player.play()
+                player?.seekTo(0)
+                player?.play()
             }
             RepeatMode.ALL -> {
                 val nextIdx = (idx + 1) % q.size
@@ -184,9 +183,15 @@ class PlaybackManager @Inject constructor(
             }
             RepeatMode.OFF -> {
                 if (_shuffleEnabled.value) {
-                    val nextIdx = (0 until q.size).filter { it != idx }.random()
-                    _queueIndex.value = nextIdx
-                    playTrack(q[nextIdx])
+                    if (q.size <= 1) {
+                        player?.seekTo(0)
+                        player?.play()
+                    } else {
+                        val candidates = (0 until q.size).filter { it != idx }
+                        val nextIdx = candidates.random()
+                        _queueIndex.value = nextIdx
+                        playTrack(q[nextIdx])
+                    }
                 } else if (idx + 1 < q.size) {
                     _queueIndex.value = idx + 1
                     playTrack(q[idx + 1])
@@ -197,7 +202,7 @@ class PlaybackManager @Inject constructor(
 
     fun toggleShuffle() {
         _shuffleEnabled.value = !_shuffleEnabled.value
-        player.shuffleModeEnabled = _shuffleEnabled.value
+        player?.shuffleModeEnabled = _shuffleEnabled.value
     }
 
     fun cycleRepeatMode() {
@@ -206,7 +211,7 @@ class PlaybackManager @Inject constructor(
             RepeatMode.ALL -> RepeatMode.ONE
             RepeatMode.ONE -> RepeatMode.OFF
         }
-        player.repeatMode = when (_repeatMode.value) {
+        player?.repeatMode = when (_repeatMode.value) {
             RepeatMode.OFF -> Player.REPEAT_MODE_OFF
             RepeatMode.ALL -> Player.REPEAT_MODE_ALL
             RepeatMode.ONE -> Player.REPEAT_MODE_ONE
@@ -214,14 +219,11 @@ class PlaybackManager @Inject constructor(
     }
 
     fun setPlaybackSpeed(speed: Float) {
-        player.setPlaybackSpeed(speed)
+        player?.setPlaybackSpeed(speed)
     }
 
-    fun getCurrentPosition(): Long = player.currentPosition
+    fun getCurrentPosition(): Long = player?.currentPosition ?: 0L
 
-    fun release() {
-        scope.cancel()
-        player.removeListener(listener)
-        player.release()
-    }
+    // Don't release from ViewModel onCleared — Singleton lives for app lifetime
+    // The player is reused across Activity recreations
 }

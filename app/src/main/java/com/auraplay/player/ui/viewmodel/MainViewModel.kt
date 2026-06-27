@@ -221,7 +221,7 @@ class MainViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        playbackManager.release()
-        audioEngine.release()
+        // PlaybackManager is @Singleton — don't release it, it persists across Activity lifecycles
+        // AudioEngine is @Singleton too — same reason
     }
 }

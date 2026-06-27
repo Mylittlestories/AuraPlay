@@ -86,7 +86,8 @@ class MusicRepository @Inject constructor(
 
                 val filePath = data
                 val folder = filePath.substringBeforeLast("/")
-                val genre = genreMap[id] ?: ""
+                val trackId = cursor.getLong(idCol)
+                val genre = genreMap[trackId] ?: ""
 
                 tracks.add(
                     Track(

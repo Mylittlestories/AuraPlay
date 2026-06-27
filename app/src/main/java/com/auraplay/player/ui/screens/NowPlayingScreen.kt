@@ -1,5 +1,8 @@
 package com.auraplay.player.ui.screens
+package com.auraplay.player.ui.screens
 
+
+import androidx.compose.foundation.background
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.auraplay.player.data.model.RepeatMode
 import com.auraplay.player.ui.theme.*
+import com.auraplay.player.ui.components.formatDuration
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -253,9 +257,3 @@ fun NowPlayingScreen(navController: NavController, viewModel: MainViewModel = hi
     }
 }
 
-fun formatDuration(ms: Long): String {
-    val totalSeconds = ms / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%d:%02d".format(minutes, seconds)
-}

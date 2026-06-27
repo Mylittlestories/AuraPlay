@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -19,6 +21,7 @@ import androidx.navigation.NavController
 import com.auraplay.player.data.model.Track
 import com.auraplay.player.ui.components.*
 import com.auraplay.player.ui.theme.*
+import com.auraplay.player.ui.navigation.urlEncode
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -162,7 +165,6 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
     }
 }
 
-fun String.urlEncode(): String = java.net.URLEncoder.encode(this, "UTF-8")
 
 // ─── Permission card ───
 @Composable
@@ -263,8 +265,6 @@ fun BrowseChip(label: String, icon: androidx.compose.ui.graphics.vector.ImageVec
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelMedium)
             }
-        },
-        border = ChipDefaults.outlinedChipBorder(enabled = true, borderColor = Outline),
-        colors = ChipDefaults.suggestionChipColors(containerColor = SurfaceVariant)
+        }
     )
 }

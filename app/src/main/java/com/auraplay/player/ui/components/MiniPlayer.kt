@@ -2,7 +2,10 @@ package com.auraplay.player.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -39,7 +42,7 @@ fun MiniPlayer(
         Column {
             // Progress bar — thin teal line
             LinearProgressIndicator(
-                progress = { if (duration > 0) (progress.toFloat() / duration.toFloat()) else 0f },
+                progress = if (duration > 0) (progress.toFloat() / duration.toFloat()) else 0f,
                 modifier = Modifier.fillMaxWidth().height(2.dp),
                 color = Primary,
                 trackColor = MiniPlayerTrack

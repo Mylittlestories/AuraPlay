@@ -2,6 +2,7 @@ package com.auraplay.player.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import com.auraplay.player.ui.navigation.urlEncode
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -74,7 +75,6 @@ fun LibraryScreen(navController: NavController, viewModel: MainViewModel = hiltV
     }
 }
 
-fun String.urlEncode(): String = java.net.URLEncoder.encode(this, "UTF-8")
 
 @Composable
 fun TracksList(

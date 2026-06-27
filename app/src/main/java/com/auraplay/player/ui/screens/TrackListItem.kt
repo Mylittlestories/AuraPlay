@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.auraplay.player.data.model.Track
+import com.auraplay.player.ui.components.formatDuration
 
 @Composable
 fun TrackListItem(
@@ -94,9 +95,3 @@ fun TrackListItem(
     }
 }
 
-fun formatDuration(ms: Long): String {
-    val totalSeconds = ms / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%d:%02d".format(minutes, seconds)
-}

@@ -26,9 +26,13 @@ data class EqualizerBand(
     val maxLevel: Short = 1500
 )
 
-@javax.inject.Singleton
-class AudioEngine @javax.inject.Inject constructor(
-    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class AudioEngine @Inject constructor(
+    @ApplicationContext private val context: Context
 ) {
     private var equalizer: Equalizer? = null
     private var bassBoost: BassBoost? = null

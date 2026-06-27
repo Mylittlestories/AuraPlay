@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.auraplay.player.audio.ShuffleMode
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShuffleSettingsScreen(viewModel: MainViewModel = hiltViewModel()) {
     val currentMode by viewModel.shuffleMode.collectAsState()

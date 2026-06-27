@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import com.auraplay.player.data.model.Track
 import com.auraplay.player.ui.components.MiniPlayer
 import com.auraplay.player.ui.viewmodel.MainViewModel
+import com.auraplay.player.ui.navigation.urlEncode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,7 +171,7 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(libraryState.albums.take(10)) { album ->
-                            SuggestionChip(onClick = { navController.navigate("album_detail/$album") },
+                            SuggestionChip(onClick = { navController.navigate("album_detail/${album.urlEncode()}") },
                                 label = { Text(album, maxLines = 1, overflow = TextOverflow.Ellipsis) })
                         }
                     }
@@ -186,7 +187,7 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(libraryState.artists.take(10)) { artist ->
-                            SuggestionChip(onClick = { navController.navigate("artist_detail/$artist") },
+                            SuggestionChip(onClick = { navController.navigate("artist_detail/${artist.urlEncode()}") },
                                 label = { Text(artist, maxLines = 1, overflow = TextOverflow.Ellipsis) })
                         }
                     }

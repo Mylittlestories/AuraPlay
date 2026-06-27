@@ -5,7 +5,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,11 +12,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.auraplay.player.ui.components.AuraPlayTopBar
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumDetailScreen(
     albumName: String,
+    navController: NavController,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val playbackState by viewModel.playbackState.collectAsState()
@@ -28,6 +31,8 @@ fun AlbumDetailScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        AuraPlayTopBar(albumName, navController)
+
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -72,9 +77,11 @@ fun AlbumDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistDetailScreen(
     artistName: String,
+    navController: NavController,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val playbackState by viewModel.playbackState.collectAsState()
@@ -85,6 +92,8 @@ fun ArtistDetailScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        AuraPlayTopBar(artistName, navController)
+
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically

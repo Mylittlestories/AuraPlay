@@ -11,15 +11,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.auraplay.player.ui.components.AuraPlayTopBar
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QueueScreen(viewModel: MainViewModel = hiltViewModel()) {
+fun QueueScreen(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
     val playbackState by viewModel.playbackState.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Text("Queue", style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(16.dp))
+        AuraPlayTopBar("Queue", navController)
 
         if (playbackState.queue.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

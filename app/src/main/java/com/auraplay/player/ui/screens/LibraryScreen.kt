@@ -4,8 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,10 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.auraplay.player.ui.components.AuraPlayTopBar
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryScreen(viewModel: MainViewModel = hiltViewModel()) {
+fun LibraryScreen(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
     val libraryState by viewModel.libraryState.collectAsState()
     val playbackState by viewModel.playbackState.collectAsState()
 
@@ -66,12 +67,15 @@ fun LibraryScreen(viewModel: MainViewModel = hiltViewModel()) {
             )
             1 -> AlbumsList(
                 albums = libraryState.albums,
-                tracksByAlbum = { album -> viewModel.getTracksByAlbum(album) },
-                onAlbumClick = { viewModel.playAlbum(it) }
+                onAlbumClick = { album ->
+                    navController.navigate("album_detail/${album.urlEncode()}")
+                }
             )
             2 -> ArtistsList(
                 artists = libraryState.artists,
-                onArtistClick = { viewModel.playArtist(it) }
+                onArtistClick = { artist ->
+                    navController.navigate("artist_detail/${artist.urlEncode()}")
+                }
             )
             3 -> GenresList(
                 genres = libraryState.genres,
@@ -91,6 +95,8 @@ fun LibraryScreen(viewModel: MainViewModel = hiltViewModel()) {
         }
     }
 }
+
+fun String.urlEncode(): String = java.net.URLEncoder.encode(this, "UTF-8")
 
 @Composable
 fun TracksList(
@@ -120,7 +126,7 @@ fun TracksList(
 }
 
 @Composable
-fun AlbumsList(albums: List<String>, tracksByAlbum: (String) -> kotlinx.coroutines.flow.Flow<List<com.auraplay.player.data.model.Track>>, onAlbumClick: (String) -> Unit) {
+fun AlbumsList(albums: List<String>, onAlbumClick: (String) -> Unit) {
     if (albums.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("No albums found", color = MaterialTheme.colorScheme.onSurfaceVariant)

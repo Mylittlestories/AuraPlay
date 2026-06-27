@@ -8,19 +8,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.auraplay.player.audio.ShuffleMode
+import com.auraplay.player.ui.components.AuraPlayTopBar
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShuffleSettingsScreen(viewModel: MainViewModel = hiltViewModel()) {
+fun ShuffleSettingsScreen(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
     val currentMode by viewModel.shuffleMode.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Shuffle Mode", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.fillMaxSize()) {
+        AuraPlayTopBar("Shuffle Mode", navController)
 
-        LazyColumn {
+        LazyColumn(modifier = Modifier.padding(16.dp)) {
             items(ShuffleMode.entries) { mode ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),

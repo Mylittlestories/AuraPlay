@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.auraplay.player.ui.screens.*
+import java.net.URLEncoder
 import java.net.URLDecoder
 
 @Composable
@@ -18,28 +19,28 @@ fun Navigation() {
             HomeScreen(navController)
         }
         composable("library") {
-            LibraryScreen()
+            LibraryScreen(navController)
         }
         composable("now_playing") {
-            NowPlayingScreen()
+            NowPlayingScreen(navController)
         }
         composable("equalizer") {
-            EqualizerScreen()
+            EqualizerScreen(navController)
         }
         composable("search") {
-            SearchScreen()
+            SearchScreen(navController)
         }
         composable("queue") {
-            QueueScreen()
+            QueueScreen(navController)
         }
         composable("settings") {
-            SettingsScreen()
+            SettingsScreen(navController)
         }
         composable("shuffle_settings") {
-            ShuffleSettingsScreen()
+            ShuffleSettingsScreen(navController)
         }
         composable("playlists") {
-            PlaylistsScreen()
+            PlaylistsScreen(navController)
         }
         composable(
             route = "album_detail/{albumName}",
@@ -48,7 +49,7 @@ fun Navigation() {
             val albumName = URLDecoder.decode(
                 backStackEntry.arguments?.getString("albumName") ?: "", "UTF-8"
             )
-            AlbumDetailScreen(albumName)
+            AlbumDetailScreen(albumName, navController)
         }
         composable(
             route = "artist_detail/{artistName}",
@@ -57,7 +58,9 @@ fun Navigation() {
             val artistName = URLDecoder.decode(
                 backStackEntry.arguments?.getString("artistName") ?: "", "UTF-8"
             )
-            ArtistDetailScreen(artistName)
+            ArtistDetailScreen(artistName, navController)
         }
     }
 }
+
+fun String.urlEncode(): String = URLEncoder.encode(this, "UTF-8")

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,16 +11,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.auraplay.player.ui.components.AuraPlayTopBar
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(viewModel: MainViewModel = hiltViewModel()) {
+fun SearchScreen(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
     val libraryState by viewModel.libraryState.collectAsState()
     val playbackState by viewModel.playbackState.collectAsState()
     var query by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Search bar
+        AuraPlayTopBar("Search", navController)
+
         OutlinedTextField(
             value = query,
             onValueChange = {
@@ -35,7 +38,6 @@ fun SearchScreen(viewModel: MainViewModel = hiltViewModel()) {
             shape = MaterialTheme.shapes.large
         )
 
-        // Results
         if (query.isBlank()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Type to search your music", color = MaterialTheme.colorScheme.onSurfaceVariant)

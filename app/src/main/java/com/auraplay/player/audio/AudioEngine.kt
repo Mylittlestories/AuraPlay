@@ -6,9 +6,12 @@ import android.media.audiofx.BassBoost
 import android.media.audiofx.Virtualizer
 import android.media.audiofx.LoudnessEnhancer
 import androidx.media3.exoplayer.ExoPlayer
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
 data class EqualizerState(
     val bands: List<EqualizerBand> = emptyList(),
@@ -25,10 +28,6 @@ data class EqualizerBand(
     val minLevel: Short = -1500,
     val maxLevel: Short = 1500
 )
-
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class AudioEngine @Inject constructor(

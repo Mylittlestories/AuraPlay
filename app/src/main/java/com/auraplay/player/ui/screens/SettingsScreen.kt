@@ -21,7 +21,7 @@ fun SettingsScreen(navController: NavController, viewModel: MainViewModel = hilt
         Column(modifier = Modifier.padding(16.dp)) {
             // Library section
             Text("Library", style = MaterialTheme.typography.titleMedium)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -43,9 +43,9 @@ fun SettingsScreen(navController: NavController, viewModel: MainViewModel = hilt
 
             // About section
             Text("About", style = MaterialTheme.typography.titleMedium)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            Text("AuraPlay v1.0.4", style = MaterialTheme.typography.bodyMedium)
+            Text("AuraPlay v1.0.5", style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(4.dp))
             Text("A premium offline music player", style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)

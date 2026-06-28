@@ -5,6 +5,8 @@ on:
     branches: [ main ]
     tags:
       - 'v*'
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -12,6 +14,7 @@ permissions:
 
 jobs:
   build:
+    name: Build debug and release APKs
     runs-on: ubuntu-latest
 
     steps:
@@ -21,46 +24,54 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'temurin'
+          cache: gradle
 
-      - name: Setup Android SDK
+      - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Accept SDK licenses
-        run: yes | sdkmanager --licenses || true
 
       - name: Install SDK components
         run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Generate debug keystore if missing
+      - name: Ensure Gradle wrapper is executable
+        run: chmod +x ./gradlew
+
+      - name: Generate CI debug/release keystore if missing
         run: |
           if [ ! -f app/debug.keystore ]; then
-            keytool -genkeypair -v -keystore app/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+            keytool -genkeypair -v \
+              -keystore app/debug.keystore \
+              -alias androiddebugkey \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass android \
+              -keypass android \
+              -dname "CN=AuraPlay CI,O=AuraPlay,C=US"
           fi
 
-      - name: Generate Gradle Wrapper
+      - name: Build debug APK
+        run: ./gradlew packageDebug --no-daemon --stacktrace
+
+      - name: Build release APK
+        run: ./gradlew packageRelease --no-daemon --stacktrace
+
+      - name: Prepare artifacts
         run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -O /tmp/gradle.zip
-          unzip -qo /tmp/gradle.zip -d /opt/
-          /opt/gradle-8.4/bin/gradle wrapper --gradle-version 8.4
-          chmod +x gradlew
+          mkdir -p artifacts
+          cp app/build/outputs/apk/debug/app-debug.apk artifacts/AuraPlay-debug.apk
+          cp app/build/outputs/apk/release/app-release.apk artifacts/AuraPlay-release.apk
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Copy APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk ./AuraPlay.apk
-
-      - name: Upload APK artifact
+      - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: AuraPlay-APK
-          path: AuraPlay.apk
+          name: AuraPlay-APKs
+          path: artifacts/*.apk
 
-      - name: Create GitHub Release
+      - name: Publish GitHub release for version tags
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: AuraPlay.apk
+          files: artifacts/*.apk
           generate_release_notes: true

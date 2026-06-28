@@ -54,7 +54,7 @@ fun PermissionScreen(onPermissionGranted: () -> Unit) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(PlayerBackground, DarkBackground)
+                    colors = listOf(Background, Surface)
                 )
             ),
         contentAlignment = Alignment.Center
@@ -72,7 +72,7 @@ fun PermissionScreen(onPermissionGranted: () -> Unit) {
                     .clip(CircleShape)
                     .background(
                         Brush.linearGradient(
-                            colors = listOf(AccentGradientStart, AccentGradientEnd)
+                            colors = listOf(Primary, Secondary)
                         )
                     ),
                 contentAlignment = Alignment.Center

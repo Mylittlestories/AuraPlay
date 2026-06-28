@@ -7,8 +7,12 @@ import com.auraplay.player.audio.ShuffleManager
 import com.auraplay.player.audio.ShuffleMode
 import com.auraplay.player.data.model.RepeatMode
 import com.auraplay.player.data.model.Track
+import com.auraplay.player.data.repository.AppSettingsRepository
 import com.auraplay.player.data.repository.MusicRepository
 import com.auraplay.player.playback.PlaybackManager
+import com.auraplay.player.ui.theme.AuraAppearance
+import com.auraplay.player.ui.theme.AuraBackgroundPreset
+import com.auraplay.player.ui.theme.AuraThemePreset
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -44,7 +48,8 @@ data class LibraryState(
 class MainViewModel @Inject constructor(
     private val repository: MusicRepository,
     private val playbackManager: PlaybackManager,
-    private val audioEngine: AudioEngine
+    private val audioEngine: AudioEngine,
+    private val settingsRepository: AppSettingsRepository
 ) : ViewModel() {
 
     private val shuffleManager = ShuffleManager()
@@ -70,6 +75,9 @@ class MainViewModel @Inject constructor(
     val shuffleMode: StateFlow<ShuffleMode> = _shuffleMode.asStateFlow()
 
     val eqState = audioEngine.eqState
+
+    val appearance: StateFlow<AuraAppearance> = settingsRepository.appearance
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AuraAppearance())
 
     init {
         viewModelScope.launch {
@@ -217,7 +225,16 @@ class MainViewModel @Inject constructor(
     fun setVirtualizer(strength: Int) = audioEngine.setVirtualizer(strength)
     fun setLoudness(gain: Int) = audioEngine.setLoudness(gain)
     fun applyPreset(presetName: String) = audioEngine.applyPreset(presetName)
+    fun setEqualizerEnabled(enabled: Boolean) = audioEngine.setEnabled(enabled)
     fun getPresets(): List<String> = audioEngine.presets
+
+    fun setThemePreset(preset: AuraThemePreset) {
+        viewModelScope.launch { settingsRepository.setThemePreset(preset) }
+    }
+
+    fun setBackgroundPreset(preset: AuraBackgroundPreset) {
+        viewModelScope.launch { settingsRepository.setBackgroundPreset(preset) }
+    }
 
     override fun onCleared() {
         super.onCleared()

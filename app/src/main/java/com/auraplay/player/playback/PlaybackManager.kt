@@ -3,8 +3,10 @@ package com.auraplay.player.playback
 import android.content.Context
 import androidx.media3.common.*
 import androidx.media3.exoplayer.ExoPlayer
+import com.auraplay.player.audio.AudioEngine
 import com.auraplay.player.data.model.RepeatMode
 import com.auraplay.player.data.model.Track
+import com.auraplay.player.data.repository.MusicRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -13,7 +15,8 @@ import javax.inject.Singleton
 
 @Singleton
 class PlaybackManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val audioEngine: AudioEngine
 ) {
     private var player: ExoPlayer? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -67,6 +70,10 @@ class PlaybackManager @Inject constructor(
                 else -> RepeatMode.OFF
             }
         }
+
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+            audioEngine.setupSession(audioSessionId)
+        }
     }
 
     private fun ensurePlayer(): ExoPlayer {
@@ -74,6 +81,7 @@ class PlaybackManager @Inject constructor(
             player = ExoPlayer.Builder(context).build().also {
                 it.addListener(listener)
                 it.repeatMode = Player.REPEAT_MODE_OFF
+                audioEngine.setupPlayer(it)
             }
             // Restart progress updates
             scope.launch {
@@ -101,6 +109,7 @@ class PlaybackManager @Inject constructor(
                     .setTitle(track.title)
                     .setArtist(track.artist)
                     .setAlbumTitle(track.album)
+                    .setArtworkUri(if (track.albumId > 0) MusicRepository.getAlbumArtUri(track.albumId) else null)
                     .build()
             )
             .build()

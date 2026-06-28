@@ -1,5 +1,6 @@
 package com.auraplay.player.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,14 +15,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.auraplay.player.data.model.Track
 import com.auraplay.player.ui.components.*
-import com.auraplay.player.ui.theme.*
 import com.auraplay.player.ui.navigation.urlEncode
+import com.auraplay.player.ui.theme.*
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,176 +32,211 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
     val libraryState by viewModel.libraryState.collectAsState()
     val playbackState by viewModel.playbackState.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 80.dp)
-        ) {
-            // ─── Top bar ───
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 16.dp)
+    ) {
+        HomeHero(
+            trackCount = libraryState.trackCount,
+            favoriteCount = libraryState.favorites.size,
+            currentTrackTitle = playbackState.currentTrack?.title,
+            isPlaying = playbackState.isPlaying,
+            onSearch = { navController.navigate("search") },
+            onSettings = { navController.navigate("settings") },
+            onNowPlaying = { navController.navigate("now_playing") }
+        )
+
+        when {
+            !libraryState.hasPermission -> PermissionCard()
+            libraryState.isScanning -> ScanningCard()
+            libraryState.trackCount == 0 -> EmptyLibraryCard { viewModel.scanForMusic() }
+        }
+
+        if (libraryState.trackCount > 0) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        "AuraPlay",
-                        style = MaterialTheme.typography.displaySmall,
-                        color = Primary
-                    )
-                    Text(
-                        "Your music, your way",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
-                    )
+                QuickActionCard("Shuffle", Icons.Default.Shuffle, Modifier.weight(1f)) {
+                    libraryState.tracks.randomOrNull()?.let { viewModel.playTrack(it) }
                 }
-                IconButton(onClick = { navController.navigate("search") }) {
-                    Icon(Icons.Default.Search, "Search", tint = TextSecondary)
+                QuickActionCard("Library", Icons.Default.LibraryMusic, Modifier.weight(1f)) {
+                    navController.navigate("library")
                 }
-                IconButton(onClick = { navController.navigate("settings") }) {
-                    Icon(Icons.Default.Settings, "Settings", tint = TextSecondary)
+                QuickActionCard("Search", Icons.Default.Search, Modifier.weight(1f)) {
+                    navController.navigate("search")
                 }
             }
 
-            // ─── Permission / Scan states ───
-            if (!libraryState.hasPermission) {
-                PermissionCard()
-            } else if (libraryState.isScanning) {
-                ScanningCard()
-            } else if (libraryState.trackCount == 0) {
-                EmptyLibraryCard { viewModel.scanForMusic() }
-            }
-
-            if (libraryState.trackCount > 0) {
-                // ─── Quick Actions ───
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    QuickActionCard("Shuffle All", Icons.Default.Shuffle, Modifier.weight(1f)) {
-                        viewModel.playTrack(libraryState.tracks.randomOrNull() ?: return@QuickActionCard)
-                    }
-                    QuickActionCard("Favorites", Icons.Default.Favorite, Modifier.weight(1f)) {
-                        navController.navigate("library")
-                    }
-                    QuickActionCard("Equalizer", Icons.Default.Equalizer, Modifier.weight(1f)) {
-                        navController.navigate("equalizer")
-                    }
-                }
-
-                // ─── Favorites ───
-                if (libraryState.favorites.isNotEmpty()) {
-                    SectionHeader("♥ Favorites") { navController.navigate("library") }
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(libraryState.favorites.take(10)) { track ->
-                            SmallTrackCard(track) { viewModel.playTrack(track) }
-                        }
-                    }
-                }
-
-                // ─── Recently Added ───
-                SectionHeader("Recently Added") { navController.navigate("library") }
+            if (libraryState.favorites.isNotEmpty()) {
+                SectionHeader("Favorites") { navController.navigate("library") }
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(libraryState.tracks.take(10)) { track ->
+                    items(libraryState.favorites.take(10), key = { it.id }) { track ->
                         SmallTrackCard(track) { viewModel.playTrack(track) }
                     }
                 }
-
-                // ─── Albums ───
-                if (libraryState.albums.isNotEmpty()) {
-                    SectionHeader("Albums") { navController.navigate("library") }
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(libraryState.albums.take(10)) { album ->
-                            BrowseChip(album, Icons.Default.Album) {
-                                navController.navigate("album_detail/${album.urlEncode()}")
-                            }
-                        }
-                    }
-                }
-
-                // ─── Artists ───
-                if (libraryState.artists.isNotEmpty()) {
-                    SectionHeader("Artists") { navController.navigate("library") }
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(libraryState.artists.take(10)) { artist ->
-                            BrowseChip(artist, Icons.Default.Person) {
-                                navController.navigate("artist_detail/${artist.urlEncode()}")
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
-        }
 
-        // ─── MiniPlayer ───
-        if (playbackState.currentTrack != null) {
-            MiniPlayer(
-                track = playbackState.currentTrack,
-                isPlaying = playbackState.isPlaying,
-                progress = playbackState.progress,
-                duration = playbackState.duration,
-                onTogglePlay = { viewModel.togglePlayPause() },
-                onSkipNext = { viewModel.skipNext() },
-                onSkipPrevious = { viewModel.skipPrevious() },
-                onClick = { navController.navigate("now_playing") },
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
+            SectionHeader("Recently Added") { navController.navigate("library") }
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(libraryState.tracks.take(10), key = { it.id }) { track ->
+                    SmallTrackCard(track) { viewModel.playTrack(track) }
+                }
+            }
+
+            if (libraryState.albums.isNotEmpty()) {
+                SectionHeader("Albums") { navController.navigate("library") }
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(libraryState.albums.take(12)) { album ->
+                        BrowseChip(album, Icons.Default.Album) {
+                            navController.navigate("album_detail/${album.urlEncode()}")
+                        }
+                    }
+                }
+            }
+
+            if (libraryState.artists.isNotEmpty()) {
+                SectionHeader("Artists") { navController.navigate("library") }
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(libraryState.artists.take(12)) { artist ->
+                        BrowseChip(artist, Icons.Default.Person) {
+                            navController.navigate("artist_detail/${artist.urlEncode()}")
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
+@Composable
+private fun HomeHero(
+    trackCount: Int,
+    favoriteCount: Int,
+    currentTrackTitle: String?,
+    isPlaying: Boolean,
+    onSearch: () -> Unit,
+    onSettings: () -> Unit,
+    onNowPlaying: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(PrimaryContainer, SurfaceVariant, Background)
+                )
+            )
+            .padding(20.dp)
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    modifier = Modifier.size(52.dp),
+                    shape = CircleShape,
+                    color = Primary.copy(alpha = 0.18f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.GraphicEq, null, tint = Primary, modifier = Modifier.size(28.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("AuraPlay", style = MaterialTheme.typography.displaySmall, color = TextPrimary)
+                    Text("Fast, simple music control", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                }
+                IconButton(onClick = onSearch) { Icon(Icons.Default.Search, "Search", tint = TextPrimary) }
+                IconButton(onClick = onSettings) { Icon(Icons.Default.Settings, "Settings", tint = TextPrimary) }
+            }
 
-// ─── Permission card ───
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                HeroStat("Songs", trackCount.toString(), Modifier.weight(1f))
+                HeroStat("Favorites", favoriteCount.toString(), Modifier.weight(1f))
+            }
+
+            if (currentTrackTitle != null) {
+                Spacer(modifier = Modifier.height(14.dp))
+                FilledTonalButton(
+                    onClick = onNowPlaying,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = Primary.copy(alpha = 0.18f),
+                        contentColor = TextPrimary
+                    )
+                ) {
+                    Icon(if (isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle, null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        if (isPlaying) "Playing: $currentTrackTitle" else "Resume: $currentTrackTitle",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroStat(label: String, value: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        color = Surface.copy(alpha = 0.62f)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(value, style = MaterialTheme.typography.headlineMedium, color = Primary)
+            Text(label, style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+        }
+    }
+}
+
 @Composable
 fun PermissionCard() {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = PrimaryContainer)
     ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = CircleShape,
-                color = Primary.copy(alpha = 0.2f)
-            ) {
+        Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Surface(modifier = Modifier.size(60.dp), shape = CircleShape, color = Primary.copy(alpha = 0.2f)) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.LibraryMusic, null, tint = Primary, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Default.LibraryMusic, null, tint = Primary, modifier = Modifier.size(30.dp))
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Access Your Music", style = MaterialTheme.typography.titleLarge, color = OnPrimaryContainer)
+            Text("Allow music access", style = MaterialTheme.typography.titleLarge, color = OnPrimaryContainer)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "AuraPlay needs permission to find and play your music. Your data never leaves your device.",
+                "AuraPlay needs access to scan songs stored on this device. Nothing is uploaded.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = OnPrimaryContainer.copy(alpha = 0.8f)
+                color = OnPrimaryContainer.copy(alpha = 0.84f)
             )
         }
     }
 }
 
-// ─── Scanning card ───
 @Composable
 fun ScanningCard() {
     Card(
@@ -207,42 +244,31 @@ fun ScanningCard() {
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = SurfaceVariant)
     ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 3.dp, color = Primary)
             Spacer(modifier = Modifier.width(16.dp))
-            Text("Scanning for music...", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            Text("Scanning your music library...", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
         }
     }
 }
 
-// ─── Empty library card ───
 @Composable
 fun EmptyLibraryCard(onScan: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = SurfaceVariant)
     ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(Icons.Default.MusicOff, null, modifier = Modifier.size(56.dp), tint = TextTertiary)
             Spacer(modifier = Modifier.height(16.dp))
             Text("No music found", style = MaterialTheme.typography.titleLarge, color = TextPrimary)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Add music files to your device, then tap the button below.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
-            )
+            Text("Add audio files to your device, then rescan your library.", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = onScan,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary)
             ) {
                 Icon(Icons.Default.Refresh, null, modifier = Modifier.size(18.dp))
@@ -253,7 +279,6 @@ fun EmptyLibraryCard(onScan: () -> Unit) {
     }
 }
 
-// ─── Browse chip for albums/artists ───
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowseChip(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
@@ -265,6 +290,10 @@ fun BrowseChip(label: String, icon: androidx.compose.ui.graphics.vector.ImageVec
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelMedium)
             }
-        }
+        },
+        colors = SuggestionChipDefaults.suggestionChipColors(
+            containerColor = SurfaceVariant,
+            labelColor = TextPrimary
+        )
     )
 }

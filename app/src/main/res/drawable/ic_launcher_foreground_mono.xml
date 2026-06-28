@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Monochrome variant of the launcher foreground for themed icons
+    (Android 13 themed icons, Wear OS tiles, etc.). The launcher
+    replaces all colours with the system's current theme tint, so
+    we only keep the silhouette here.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="?android:attr/colorControlNormal">
+
+    <!-- Equaliser bars (silhouette) -->
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M38,32 h4 v8 h-4 z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M46,28 h4 v12 h-4 z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M54,24 h4 v16 h-4 z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M62,28 h4 v12 h-4 z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M70,32 h4 v8 h-4 z" />
+
+    <!-- Note stem -->
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M40,40 h6 v34 h-6 z" />
+
+    <!-- Note head -->
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M40,72 m-10,-4 a10,7 0,1 1,20 0a10,7 0,1 1,-20 0" />
+
+    <!-- Note flag (banner across the top-right) -->
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M46,40 h22 a4,4 0 0 1 4,4 v6 a4,4 0 0 1 -4,4 h-22 z" />
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M68,40 q6,4 6,10 q0,6 -6,10 l0,-6 q3,-2 3,-4 q0,-2 -3,-4 z" />
+</vector>

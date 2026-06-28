@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.auraplay.player.data.model.Track
@@ -29,33 +30,29 @@ fun TrackListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (isCurrentTrack) PrimaryContainer.copy(alpha = 0.56f) else Color.Transparent)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Album art placeholder — rounded, with teal tint if playing
         Surface(
             modifier = Modifier.size(52.dp),
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(12.dp),
             color = if (isCurrentTrack) PrimaryContainer else SurfaceVariant
         ) {
             Box(contentAlignment = Alignment.Center) {
+                AlbumArt(track = track, modifier = Modifier.fillMaxSize(), showMusicNote = true)
                 if (isCurrentTrack && isPlaying) {
-                    // Animated bars icon when playing
-                    Icon(
-                        Icons.Default.Equalizer,
-                        contentDescription = null,
-                        tint = Primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Icon(
-                        Icons.Default.MusicNote,
-                        contentDescription = null,
-                        tint = if (isCurrentTrack) Primary else TextTertiary,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    Surface(shape = CircleShape, color = PlayerOverlay.copy(alpha = 0.42f)) {
+                        Icon(
+                            Icons.Default.Equalizer,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.padding(7.dp).size(20.dp)
+                        )
+                    }
                 }
             }
         }
@@ -173,14 +170,7 @@ fun SmallTrackCard(track: Track, onClick: () -> Unit) {
                 shape = RoundedCornerShape(12.dp),
                 color = SurfaceHigh
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Default.Album,
-                        null,
-                        tint = Primary.copy(alpha = 0.5f),
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
+                AlbumArt(track = track, modifier = Modifier.fillMaxSize())
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(

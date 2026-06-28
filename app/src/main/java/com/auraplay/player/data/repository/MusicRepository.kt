@@ -2,6 +2,7 @@ package com.auraplay.player.data.repository
 
 import android.content.ContentResolver
 import android.content.ContentUris
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import com.auraplay.player.data.local.TrackDao
@@ -87,21 +88,27 @@ class MusicRepository @Inject constructor(
                 val filePath = data
                 val folder = filePath.substringBeforeLast("/")
                 val trackId = cursor.getLong(idCol)
-                val genre = genreMap[trackId] ?: ""
+                val fileMetadata = readFileMetadata(trackId, filePath)
+
+                val mediaStoreTitle = if (titleCol >= 0) cursor.getString(titleCol) else null
+                val mediaStoreArtist = if (artistCol >= 0) cursor.getString(artistCol) else null
+                val mediaStoreAlbum = if (albumCol >= 0) cursor.getString(albumCol) else null
+                val mediaStoreYear = if (yearCol >= 0) cursor.getInt(yearCol) else 0
+                val mediaStoreTrack = if (trackCol >= 0) cursor.getInt(trackCol) % 1000 else 0
 
                 tracks.add(
                     Track(
-                        id = cursor.getLong(idCol),
-                        title = if (titleCol >= 0) cursor.getString(titleCol) ?: "Unknown" else "Unknown",
-                        artist = if (artistCol >= 0) cursor.getString(artistCol) ?: "Unknown Artist" else "Unknown Artist",
-                        album = if (albumCol >= 0) cursor.getString(albumCol) ?: "Unknown Album" else "Unknown Album",
+                        id = trackId,
+                        title = bestText(mediaStoreTitle, fileMetadata.title, filePath.substringAfterLast('/').substringBeforeLast('.'), "Unknown"),
+                        artist = bestText(mediaStoreArtist, fileMetadata.artist, null, "Unknown Artist"),
+                        album = bestText(mediaStoreAlbum, fileMetadata.album, null, "Unknown Album"),
                         albumId = if (albumIdCol >= 0) cursor.getLong(albumIdCol) else 0L,
-                        genre = genre,
-                        duration = duration,
+                        genre = bestText(genreMap[trackId], fileMetadata.genre, null, ""),
+                        duration = fileMetadata.duration.takeIf { it > 0 } ?: duration,
                         data = filePath,
                         folder = folder,
-                        year = if (yearCol >= 0) cursor.getInt(yearCol) else 0,
-                        trackNumber = if (trackCol >= 0) cursor.getInt(trackCol) % 1000 else 0,
+                        year = mediaStoreYear.takeIf { it > 0 } ?: fileMetadata.year,
+                        trackNumber = mediaStoreTrack.takeIf { it > 0 } ?: fileMetadata.trackNumber,
                         dateAdded = if (dateAddedCol >= 0) cursor.getLong(dateAddedCol) * 1000 else 0L
                     )
                 )
@@ -109,6 +116,60 @@ class MusicRepository @Inject constructor(
         }
 
         return tracks
+    }
+
+    private data class FileMetadata(
+        val title: String? = null,
+        val artist: String? = null,
+        val album: String? = null,
+        val genre: String? = null,
+        val year: Int = 0,
+        val trackNumber: Int = 0,
+        val duration: Long = 0L
+    )
+
+    private fun readFileMetadata(trackId: Long, filePath: String): FileMetadata {
+        return try {
+            val retriever = MediaMetadataRetriever()
+            try {
+                val audioUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, trackId)
+                val descriptor = contentResolver.openFileDescriptor(audioUri, "r")
+                if (descriptor != null) {
+                    descriptor.use { retriever.setDataSource(it.fileDescriptor) }
+                } else {
+                    retriever.setDataSource(filePath)
+                }
+                FileMetadata(
+                    title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE),
+                    artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                        ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST),
+                    album = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM),
+                    genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE),
+                    year = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR)?.toIntOrNull() ?: 0,
+                    trackNumber = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
+                        ?.substringBefore('/')?.toIntOrNull() ?: 0,
+                    duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+                )
+            } finally {
+                retriever.release()
+            }
+        } catch (_: Exception) {
+            FileMetadata()
+        }
+    }
+
+    private fun bestText(primary: String?, fallback: String?, finalFallback: String?, unknown: String): String {
+        fun usable(value: String?): Boolean {
+            if (value.isNullOrBlank()) return false
+            val normalized = value.trim().lowercase()
+            return normalized != "unknown" && normalized != "<unknown>" && normalized != "unknown artist" && normalized != "unknown album"
+        }
+        return when {
+            usable(primary) -> primary!!.trim()
+            usable(fallback) -> fallback!!.trim()
+            usable(finalFallback) -> finalFallback!!.trim()
+            else -> unknown
+        }
     }
 
     private fun buildGenreMap(): Map<Long, String> {

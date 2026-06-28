@@ -9,6 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import com.auraplay.player.ui.navigation.Navigation
 import com.auraplay.player.ui.theme.AuraPlayTheme
@@ -34,9 +36,10 @@ class MainActivity : ComponentActivity() {
         checkAndRequestPermissions()
 
         setContent {
-            AuraPlayTheme {
+            val appearance by viewModel.appearance.collectAsState()
+            AuraPlayTheme(appearance = appearance) {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    Navigation()
+                    Navigation(viewModel)
                 }
             }
         }

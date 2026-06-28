@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.auraplay.player.ui.components.AlbumArt
 import com.auraplay.player.ui.components.AuraPlayTopBar
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
@@ -42,9 +43,7 @@ fun AlbumDetailScreen(
                 shape = MaterialTheme.shapes.medium,
                 color = MaterialTheme.colorScheme.surfaceVariant
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Album, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                AlbumArt(track = tracks.firstOrNull(), modifier = Modifier.fillMaxSize())
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {

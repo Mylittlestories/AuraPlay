@@ -2,7 +2,6 @@ package com.auraplay.player.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import com.auraplay.player.ui.navigation.urlEncode
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -17,7 +16,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.auraplay.player.ui.components.AuraPlayTopBar
+import com.auraplay.player.data.model.Track
+import com.auraplay.player.ui.navigation.urlEncode
 import com.auraplay.player.ui.components.TrackListItem
 import com.auraplay.player.ui.theme.*
 import com.auraplay.player.ui.viewmodel.MainViewModel
@@ -32,66 +32,98 @@ fun LibraryScreen(navController: NavController, viewModel: MainViewModel = hiltV
     val tabs = listOf("Tracks", "Albums", "Artists", "Genres", "Folders", "Favorites")
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Header
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Library", style = MaterialTheme.typography.headlineMedium, color = Primary)
-            Spacer(modifier = Modifier.weight(1f))
-            Text("${libraryState.trackCount} tracks", style = MaterialTheme.typography.labelMedium, color = TextTertiary)
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Library", style = MaterialTheme.typography.headlineMedium, color = TextPrimary)
+                Text("${libraryState.trackCount} tracks • ${libraryState.favorites.size} favorites", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+            }
+            IconButton(onClick = { navController.navigate("search") }) {
+                Icon(Icons.Default.Search, "Search", tint = TextSecondary)
+            }
             IconButton(onClick = { viewModel.scanForMusic() }) {
                 Icon(Icons.Default.Refresh, "Rescan", tint = TextSecondary)
             }
         }
 
-        // Tabs — teal indicator
+        if (libraryState.tracks.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Button(
+                    onClick = { viewModel.playQueue(libraryState.tracks, 0) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary)
+                ) {
+                    Icon(Icons.Default.PlayArrow, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Play all")
+                }
+                OutlinedButton(
+                    onClick = { libraryState.tracks.randomOrNull()?.let { viewModel.playTrack(it) } },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary)
+                ) {
+                    Icon(Icons.Default.Shuffle, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Shuffle")
+                }
+            }
+        }
+
         ScrollableTabRow(
             selectedTabIndex = selectedTab,
             containerColor = Background,
             contentColor = Primary,
-            edgePadding = 16.dp
+            edgePadding = 16.dp,
+            divider = {}
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = selectedTab == index,
                     onClick = { selectedTab = index },
-                    text = { Text(title, color = if (index == selectedTab) Primary else TextSecondary) }
+                    text = { Text(title, color = if (index == selectedTab) TextPrimary else TextSecondary) }
                 )
             }
         }
 
-        // Content
         when (selectedTab) {
-            0 -> TracksList(libraryState.tracks, playbackState.currentTrack, playbackState.isPlaying,
-                { viewModel.playTrack(it) }, { viewModel.toggleFavorite(it) })
+            0 -> TracksList(libraryState.tracks, playbackState.currentTrack, playbackState.isPlaying, { viewModel.playTrack(it) }, { viewModel.toggleFavorite(it) })
             1 -> AlbumsList(libraryState.albums) { navController.navigate("album_detail/${it.urlEncode()}") }
             2 -> ArtistsList(libraryState.artists) { navController.navigate("artist_detail/${it.urlEncode()}") }
             3 -> GenresList(libraryState.genres) { viewModel.playGenre(it) }
             4 -> FoldersList(libraryState.folders) { viewModel.playFolder(it) }
-            5 -> TracksList(libraryState.favorites, playbackState.currentTrack, playbackState.isPlaying,
-                { viewModel.playTrack(it) }, { viewModel.toggleFavorite(it) })
+            5 -> TracksList(libraryState.favorites, playbackState.currentTrack, playbackState.isPlaying, { viewModel.playTrack(it) }, { viewModel.toggleFavorite(it) })
         }
     }
 }
 
-
 @Composable
 fun TracksList(
-    tracks: List<com.auraplay.player.data.model.Track>,
-    currentTrack: com.auraplay.player.data.model.Track?,
+    tracks: List<Track>,
+    currentTrack: Track?,
     isPlaying: Boolean,
-    onTrackClick: (com.auraplay.player.data.model.Track) -> Unit,
-    onFavoriteClick: (com.auraplay.player.data.model.Track) -> Unit
+    onTrackClick: (Track) -> Unit,
+    onFavoriteClick: (Track) -> Unit
 ) {
     if (tracks.isEmpty()) {
         EmptyState("No tracks found")
         return
     }
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 6.dp)) {
         items(tracks, key = { it.id }) { track ->
-            TrackListItem(track, track.id == currentTrack?.id, isPlaying && track.id == currentTrack?.id,
-                { onTrackClick(track) }, { onFavoriteClick(track) })
+            TrackListItem(
+                track,
+                track.id == currentTrack?.id,
+                isPlaying && track.id == currentTrack?.id,
+                { onTrackClick(track) },
+                { onFavoriteClick(track) }
+            )
         }
     }
 }
@@ -99,21 +131,17 @@ fun TracksList(
 @Composable
 fun AlbumsList(albums: List<String>, onAlbumClick: (String) -> Unit) {
     if (albums.isEmpty()) { EmptyState("No albums found"); return }
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 6.dp)) {
         items(albums) { album ->
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { onAlbumClick(album) }
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(modifier = Modifier.size(50.dp), shape = RoundedCornerShape(10.dp), color = PrimaryContainer) {
-                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Album, null, tint = Primary) }
-                }
-                Spacer(modifier = Modifier.width(14.dp))
-                Text(album, style = MaterialTheme.typography.bodyLarge, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f), color = TextPrimary)
-                Icon(Icons.Default.PlayArrow, null, tint = Primary, modifier = Modifier.size(24.dp))
-            }
+            LibraryRow(
+                title = album,
+                subtitle = "Album",
+                icon = Icons.Default.Album,
+                iconTint = Primary,
+                container = PrimaryContainer,
+                shape = RoundedCornerShape(14.dp),
+                onClick = { onAlbumClick(album) }
+            )
         }
     }
 }
@@ -121,21 +149,17 @@ fun AlbumsList(albums: List<String>, onAlbumClick: (String) -> Unit) {
 @Composable
 fun ArtistsList(artists: List<String>, onArtistClick: (String) -> Unit) {
     if (artists.isEmpty()) { EmptyState("No artists found"); return }
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 6.dp)) {
         items(artists) { artist ->
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { onArtistClick(artist) }
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(modifier = Modifier.size(50.dp), shape = CircleShape, color = SecondaryContainer) {
-                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Person, null, tint = Secondary) }
-                }
-                Spacer(modifier = Modifier.width(14.dp))
-                Text(artist, style = MaterialTheme.typography.bodyLarge, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f), color = TextPrimary)
-                Icon(Icons.Default.PlayArrow, null, tint = Primary, modifier = Modifier.size(24.dp))
-            }
+            LibraryRow(
+                title = artist,
+                subtitle = "Artist",
+                icon = Icons.Default.Person,
+                iconTint = Secondary,
+                container = SecondaryContainer,
+                shape = CircleShape,
+                onClick = { onArtistClick(artist) }
+            )
         }
     }
 }
@@ -143,20 +167,17 @@ fun ArtistsList(artists: List<String>, onArtistClick: (String) -> Unit) {
 @Composable
 fun GenresList(genres: List<String>, onGenreClick: (String) -> Unit) {
     if (genres.isEmpty()) { EmptyState("No genres found"); return }
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 6.dp)) {
         items(genres) { genre ->
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { onGenreClick(genre) }
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(modifier = Modifier.size(50.dp), shape = RoundedCornerShape(10.dp), color = SurfaceVariant) {
-                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Category, null, tint = Secondary) }
-                }
-                Spacer(modifier = Modifier.width(14.dp))
-                Text(genre, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f), color = TextPrimary)
-                Icon(Icons.Default.PlayArrow, null, tint = Primary, modifier = Modifier.size(24.dp))
-            }
+            LibraryRow(
+                title = genre,
+                subtitle = "Genre",
+                icon = Icons.Default.Category,
+                iconTint = Secondary,
+                container = SurfaceVariant,
+                shape = RoundedCornerShape(14.dp),
+                onClick = { onGenreClick(genre) }
+            )
         }
     }
 }
@@ -164,25 +185,49 @@ fun GenresList(genres: List<String>, onGenreClick: (String) -> Unit) {
 @Composable
 fun FoldersList(folders: List<String>, onFolderClick: (String) -> Unit) {
     if (folders.isEmpty()) { EmptyState("No folders found"); return }
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 6.dp)) {
         items(folders) { folder ->
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { onFolderClick(folder) }
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(modifier = Modifier.size(50.dp), shape = RoundedCornerShape(10.dp), color = SurfaceVariant) {
-                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Folder, null, tint = Secondary) }
-                }
-                Spacer(modifier = Modifier.width(14.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(folder.substringAfterLast("/"), style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis, color = TextPrimary)
-                    Text(folder, style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis, color = TextTertiary)
-                }
-                Icon(Icons.Default.PlayArrow, null, tint = Primary, modifier = Modifier.size(24.dp))
-            }
+            LibraryRow(
+                title = folder.substringAfterLast("/"),
+                subtitle = folder,
+                icon = Icons.Default.Folder,
+                iconTint = Secondary,
+                container = SurfaceVariant,
+                shape = RoundedCornerShape(14.dp),
+                onClick = { onFolderClick(folder) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun LibraryRow(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: androidx.compose.ui.graphics.Color,
+    container: androidx.compose.ui.graphics.Color,
+    shape: androidx.compose.ui.graphics.Shape,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 3.dp)
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(modifier = Modifier.size(52.dp), shape = shape, color = container) {
+            Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = iconTint) }
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, color = TextPrimary)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, color = TextTertiary)
+        }
+        Surface(shape = CircleShape, color = Primary.copy(alpha = 0.14f)) {
+            Icon(Icons.Default.ChevronRight, null, tint = Primary, modifier = Modifier.padding(8.dp).size(18.dp))
         }
     }
 }

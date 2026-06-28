@@ -16,6 +16,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.auraplay.player.data.model.RepeatMode
 import com.auraplay.player.ui.theme.*
+import com.auraplay.player.ui.components.AlbumArt
+import com.auraplay.player.ui.components.WinampVisualizer
 import com.auraplay.player.ui.components.formatDuration
 import com.auraplay.player.ui.viewmodel.MainViewModel
 
@@ -78,26 +80,24 @@ fun NowPlayingScreen(navController: NavController, viewModel: MainViewModel = hi
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Album art — large, rounded, with gradient background
                 Surface(
-                    modifier = Modifier.size(280.dp),
+                    modifier = Modifier.size(240.dp),
                     shape = RoundedCornerShape(28.dp),
-                    color = PrimaryContainer
+                    color = PrimaryContainer,
+                    shadowElevation = 10.dp
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Icon(
-                            Icons.Default.Album,
-                            contentDescription = "Album Art",
-                            modifier = Modifier.size(100.dp),
-                            tint = Primary.copy(alpha = 0.4f)
-                        )
-                    }
+                    AlbumArt(track = track, modifier = Modifier.fillMaxSize())
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(18.dp))
+
+                WinampVisualizer(
+                    isPlaying = playbackState.isPlaying,
+                    progress = playbackState.progress,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(22.dp))
 
                 // Track info — centered
                 Text(

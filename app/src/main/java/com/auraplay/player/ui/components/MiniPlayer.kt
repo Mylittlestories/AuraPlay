@@ -55,20 +55,12 @@ fun MiniPlayer(
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Small album icon
                 Surface(
                     modifier = Modifier.size(42.dp),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(10.dp),
                     color = PrimaryContainer
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Default.MusicNote,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    AlbumArt(track = track, modifier = Modifier.fillMaxSize(), showMusicNote = true)
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))

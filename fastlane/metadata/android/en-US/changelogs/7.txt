@@ -1,0 +1,6 @@
+AuraPlay 2.1.0:
+
+* AuraShuffle: intelligent weighted shuffle across the whole library — discovery boost, recency penalty, artist spacing; a new order every time.
+* Mood Radio: one-tap mood queues (chill, energy, happy, melancholy, discovery, favorites) generated offline.
+* USB DAC routing: playback goes straight to a connected USB DAC or audio interface.
+* New aura home section with animated, theme-adaptive orb.

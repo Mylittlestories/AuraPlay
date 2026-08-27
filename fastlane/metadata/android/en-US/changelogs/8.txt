@@ -1,0 +1,6 @@
+AuraPlay 2.2.0:
+
+* Sound Engine screen: live output path, USB DAC detection with sample rates, signal-chain view, output modes and DAC routing in one place.
+* New DRVsoft brand mark across notification and themed icons.
+* Correct DRVsoft / repo attribution in About.
+* F-Droid submission preparation (fastlane metadata).

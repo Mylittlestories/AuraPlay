@@ -123,8 +123,8 @@ private data class Contributor(
 private val CoreMaintainer = Contributor(
     id = "lostf1sh",
     displayName = "@lostf1sh",
-    role = "FOSS Maintainer",
-    detail = "Maintains AuraPlay. GitHub and Telegram: @lostf1sh.",
+    role = "Upstream Author",
+    detail = "Created PixelPlayerOSS, the open-source foundation AuraPlay is built on.",
     avatarUrl = "https://github.com/lostf1sh.png",
     iconRes = R.drawable.round_developer_board_24,
     githubUrl = "https://github.com/lostf1sh",
@@ -135,20 +135,31 @@ private val NonFossMaintainer = Contributor(
     id = "theovilardo",
     displayName = "@theovilardo",
     role = "Author / Non-FOSS Maintainer",
-    detail = "Author and maintainer of the original Google Play / non-FOSS AuraPlay release.",
+    detail = "Author of the original non-FOSS PixelPlayer release.",
     badge = "Original app",
     avatarUrl = "https://github.com/theovilardo.png",
     iconRes = R.drawable.round_developer_board_24,
     githubUrl = "https://github.com/theovilardo",
 )
 
+private val DRVsoft = Contributor(
+    id = "drvsoft",
+    displayName = "DRVsoft",
+    role = "Creator & Maintainer of AuraPlay",
+    detail = "Designs, engineers and maintains AuraPlay.",
+    badge = "DRVsoft",
+    iconRes = R.drawable.round_developer_board_24,
+    githubUrl = "https://github.com/Mylittlestories",
+)
+
 private val AboutMaintainers = listOf(
+    DRVsoft,
     CoreMaintainer,
     NonFossMaintainer,
 )
 
-private const val SourceRepoUrl = "https://github.com/lostf1sh/AuraPlay"
-private const val FDroidUrl = "https://f-droid.org/packages/com.lostf1sh.pixelplayeross/"
+private const val SourceRepoUrl = "https://github.com/Mylittlestories/AuraPlay"
+private const val FDroidUrl = "https://f-droid.org/en/packages/com.auraplay.player/"
 private const val SponsorUrl = "https://github.com/sponsors/lostf1sh"
 
 private data class ProjectLink(

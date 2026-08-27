@@ -1,16 +1,24 @@
-PixelPlayerOSS is a FOSS Android music player focused on local playback, self-hosted music libraries, and user-controlled online lookups.
+AuraPlay is an offline-first Android music player with a hi-fi sound engine, intelligent shuffle and mood-based playback.
 
-The app works offline by default. Network features are optional and must be enabled by the user.
+Engineered by DRVsoft. Built on the open-source PixelPlayerOSS (GPL-3.0) — full credit and many thanks to @lostf1sh and its contributors.
 
-Features:
+Sound engine:
+• USB DAC / audio interface routing for the cleanest signal path
+• Float PCM output mode, FFmpeg hi-res decoders
+• Equalizer with presets, crossfade and gapless playback
 
-* Local music scanning and playback for common audio formats
-* Gapless playback, crossfade, custom transitions, queue controls, shuffle, repeat, and sleep timer
-* Albums, artists, genres, folders, favorites, playlists, lyrics, and listening stats
-* Smart playlists generated from local listening history and favorites
-* Self-hosted Navidrome/Subsonic and Jellyfin library sync and streaming
-* Optional LRCLIB lyric lookup and Deezer artist artwork lookup
-* Material 3 UI, dynamic color, light/dark themes, and Glance widgets
-* Backup and restore for preferences, playlists, favorites, lyrics, stats, and app state
+Playback intelligence:
+• AuraShuffle: weighted whole-library shuffle with discovery boost and artist spacing — never the same twice
+• Mood Radio: one tap builds a queue for your mood (chill, energy, happy, melancholy, discovery, favorites), fully offline
 
-PixelPlayerOSS does not include analytics, ads, Firebase, Crashlytics, Play Store billing, or Google Play Services runtime dependencies.
+Library & more:
+• Albums, artists, genres, folders, favorites, playlists, instant search
+• Lyrics (offline .lrc and optional LRCLIB lookup)
+• Optional self-hosted sync: Navidrome/Subsonic, Jellyfin, ListenBrainz scrobbling
+• Encrypted backup/restore, home-screen widgets, listening stats
+• Material 3 dynamic theming, animated aura UI
+
+No ads, no tracking, no account required. Online features are optional and off by default.
+
+Source code: https://github.com/Mylittlestories/AuraPlay
+License: GPL-3.0-or-later

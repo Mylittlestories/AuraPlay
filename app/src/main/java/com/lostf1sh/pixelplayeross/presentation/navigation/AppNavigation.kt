@@ -568,6 +568,21 @@ fun AppNavigation(
                 }
             }
             composable(
+                route = Screen.SoundEngine.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) {
+                ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
+                    com.lostf1sh.pixelplayeross.presentation.screens.SoundEngineScreen(
+                        navController = navController,
+                        playerViewModel = playerViewModel
+                    )
+                }
+            }
+            composable(
                 Screen.NavidromeDashboard.route,
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },

@@ -75,6 +75,10 @@ sealed class Screen(val route: String) {
         fun createRoute(highlightKey: String? = null) =
             if (highlightKey != null) "device_capabilities?highlightKey=$highlightKey" else "device_capabilities"
     }
+    object SoundEngine : Screen("sound_engine?highlightKey={highlightKey}") {
+        fun createRoute(highlightKey: String? = null) =
+            if (highlightKey != null) "sound_engine?highlightKey=$highlightKey" else "sound_engine"
+    }
     object NavidromeDashboard : Screen("navidrome_dashboard")
     object JellyfinDashboard : Screen("jellyfin_dashboard")
     object CloudDownloads : Screen("cloud_downloads")

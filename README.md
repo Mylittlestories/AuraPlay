@@ -3,6 +3,7 @@
 A modern, offline-first Android music player built with **Jetpack Compose**, **Media3 (ExoPlayer)** and **Material 3**.
 
 > **Identity:** `com.auraplay.player` · **Min Android:** 11 (API 30) · **License:** GPL-3.0
+> **Crafted by [DRVsoft](https://github.com/Mylittlestories)** — this is the official AuraPlay repository.
 
 ---
 
@@ -28,6 +29,8 @@ A modern, offline-first Android music player built with **Jetpack Compose**, **M
 3. Install it (enable "install unknown apps" if asked)
 
 Every push to a `v*` tag builds and publishes a fresh release automatically via GitHub Actions.
+
+**F-Droid:** submission in progress — see [docs/FDROID-SUBMISSION.md](docs/FDROID-SUBMISSION.md) (IzzyOnDroid first, main repo after).
 
 **Obtainium users:** add this repo, app id `com.auraplay.player`.
 

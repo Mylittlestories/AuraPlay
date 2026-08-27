@@ -287,4 +287,25 @@
     <string name="mood_chip_favorites">Favorites</string>
     <string name="setcat_prefer_usb_dac_title">Prefer external DAC / USB audio</string>
     <string name="setcat_prefer_usb_dac_subtitle">Route playback straight to a connected USB DAC or audio interface for the cleanest signal path</string>
+
+    <!-- AuraPlay Sound Engine & DRVsoft branding -->
+    <string name="sound_engine_title">Sound Engine</string>
+    <string name="sound_engine_subtitle">Output path, DAC routing and the live signal chain</string>
+    <string name="sound_engine_subtitle_short">DAC routing, output modes &amp; signal chain</string>
+    <string name="sound_engine_output_device">Output device</string>
+    <string name="sound_engine_dac_active">USB DAC — direct routing active</string>
+    <string name="sound_engine_dac_standby">USB DAC attached — routing off in settings</string>
+    <string name="sound_engine_dac_rates">Supported sample rates: %s</string>
+    <string name="sound_engine_no_dac">Internal speaker / headset output</string>
+    <string name="sound_engine_no_dac_hint">Plug in a USB DAC or audio interface and it will appear here automatically.</string>
+    <string name="sound_engine_signal_path">Signal path</string>
+    <string name="sound_engine_stage_source">File</string>
+    <string name="sound_engine_stage_decoder">FFmpeg</string>
+    <string name="sound_engine_stage_float">Float PCM</string>
+    <string name="sound_engine_stage_float_off">16-bit PCM</string>
+    <string name="sound_engine_stage_dac">USB DAC</string>
+    <string name="sound_engine_stage_speaker">Speaker</string>
+    <string name="sound_engine_mode_title">Output mode</string>
+    <string name="sound_engine_open_eq">Open equalizer</string>
+    <string name="drvsoft_footer">Engineered by DRVsoft · github.com/Mylittlestories/AuraPlay</string>
 </resources>

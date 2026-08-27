@@ -19,10 +19,10 @@ jobs:
           java-version: '21'
 
       - name: Set up Android SDK
-        uses: actions/setup-android@v2
+        uses: actions/setup-android@v3
         with:
           api-level: 30
-          # The action will install the required SDK platforms and accept licences.
+          # The action installs the required SDK platforms and accept licences.
 
       - name: Cache Gradle
         uses: actions/cache@v3

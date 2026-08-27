@@ -36,14 +36,14 @@
         android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PixelPlayer"
+        android:theme="@style/Theme.AuraPlay"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.PixelPlayer"
+            android:theme="@style/Theme.AuraPlay"
             android:launchMode="singleTop"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize"
             android:windowSoftInputMode="adjustResize">
@@ -70,14 +70,14 @@
             android:name=".presentation.navidrome.auth.NavidromeLoginActivity"
             android:exported="false"
             android:label="Navidrome Login"
-            android:theme="@style/Theme.PixelPlayer"
+            android:theme="@style/Theme.AuraPlay"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".presentation.jellyfin.auth.JellyfinLoginActivity"
             android:exported="false"
             android:label="Jellyfin Login"
-            android:theme="@style/Theme.PixelPlayer"
+            android:theme="@style/Theme.AuraPlay"
             android:windowSoftInputMode="adjustResize" />
 
 
@@ -85,7 +85,7 @@
             android:name=".ExternalPlayerActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.PixelPlayer.ExternalPlayer"
+            android:theme="@style/Theme.AuraPlay.ExternalPlayer"
             android:excludeFromRecents="true"
             android:grantUriPermissions="true">
             <intent-filter>

@@ -1,203 +1,154 @@
-# 🎵 AuraPlay - Premium Android Music Player
+# AuraPlay – Premium Android Music Player
 
-<div align="center">
+**[🎵 Listen online](https://auraplay.example.com) | [📦 F-Droid](https://f-droid.org/en/packages/com.auraplay.player/) | [🛠️ Source](https://github.com/Mylittlestories/AuraPlay)**
 
-**DAC Quality Audio • Smart Shuffle • Material 3 Design**
-
-*A next-generation offline music player for Android*
-
-</div>
+AuraPlay is a **modern, offline‑first Android music player** built with **Jetpack Compose**, **Material 3**, and **ExoPlayer (Media3)**. It focuses on high‑quality audio, a gorgeous UI that adapts to your wallpaper (dynamic colors), and a FOSS‑first optional‑services model.
 
 ---
 
-## ✨ Features
+## ✨ Highlights
 
-### 🎧 Audio Engine
-- **DAC Quality Sound** - Crystal clear audio output with ExoPlayer
-- **10-Band Equalizer** - Fine-tune your sound with 10 frequency bands
-- **Bass Boost** - Deep, powerful bass enhancement
-- **Virtualizer** - Immersive surround sound effect
-- **Loudness Enhancer** - Boost overall volume without distortion
-- **11 Audio Presets** - Flat, Bass Boost, Vocal, Rock, Pop, Jazz, Classical, Electronic, Hip-Hop, Acoustic, Bass & Treble
-- **Playback Speed Control** - 0.5x to 2.0x speed adjustment
-
-### 🔀 Advanced Shuffle System
-- **Smart Shuffle** - No repetition, varied artists/albums for the best experience
-- **True Random** - Pure random selection
-- **Artist Mix** - Prioritizes different artists for variety
-- **Album Mix** - Mixes tracks from different albums
-- **Genre Mix** - Rotates through different genres
-- **Most Played First** - Plays your favorites more often
-- **Discovery Mode** - Prioritizes less-played tracks for music discovery
-
-### 📱 Library Management
-- **Full Device Scan** - Automatically finds all music files
-- **Browse by:**
-  - Tracks
-  - Albums (with grid view)
-  - Artists
-  - Genres
-  - Folders (internal storage & SD card)
-  - Favorites
-- **Playlist Support** - Create, edit, and manage custom playlists
-- **Search** - Instant search across songs, artists, and albums
-
-### 🎨 Design
-- **Material 3 / Material You** - Modern, lustrous design
-- **Dark Theme** - Beautiful deep purple/blue aesthetic
-- **Rotating Vinyl Animation** - Immersive now-playing experience
-- **Edge-to-Edge** - Full screen immersive UI
-- **Mini Player** - Persistent playback controls
-- **Smooth Animations** - Fluid transitions throughout
-
-### 🔧 Technical
-- **100% Offline** - No internet required
-- **Background Playback** - Media notification controls
-- **Headphone Controls** - Hardware button support
-- **Queue Management** - Add, remove, reorder tracks
-- **Swipe Gestures** - Swipe album art to skip tracks
-- **Media Session** - Android Auto & smartwatch support
+| Feature | Description |
+|---|---|
+| **Audio Engine** | ExoPlayer (Media3) with a 10‑band equalizer, bass boost, virtualizer, loudness enhancer and 11 presets. |
+| **Playback Controls** | Cross‑fade, gapless playback, playback speed 0.5×‑2.0×, sleep timer. |
+| **Shuffle Modes** | Off, Smart, True Random, Artist Mix, Album Mix, Genre Mix, **Most Played First**, **Discovery Mode** (prioritises un‑played tracks). |
+| **Library** | Full‑device scan, browse by Tracks, Albums (grid), Artists, Genres, Folders, Favorites. Playlist support, instant search. |
+| **Design** | Material 3 / Material You – dynamic colors from album art, rotating vinyl animation, edge‑to‑edge UI, mini‑player, smooth animations, light/dark themes. |
+| **Optional Online Services** (off by default) | Self‑hosted Navidrome/Subsonic/Jellyfin sync, LRCLIB lyrics lookup, Deezer artist image caching. |
+| **Background Playback** | Media Session for Android Auto & smartwatch, head‑hardware button support. |
+| **Accessibility** | Volume key navigation, talkback friendly labels. |
 
 ---
 
-## 🏗️ Architecture
+## 📦 Quick Start
 
-```
-AuraPlay/
-├── app/
-│   └── src/main/java/com/auraplay/player/
-│       ├── AuraPlayApp.kt                 # Application class
-│       ├── MainActivity.kt                # Main entry point
-│       │
-│       ├── audio/
-│       │   ├── AudioEngine.kt             # Equalizer, effects, presets
-│       │   └── ShuffleManager.kt          # 8 shuffle algorithms
-│       │
-│       ├── data/
-│       │   ├── local/
-│       │   │   ├── AuraPlayDatabase.kt    # Room database
-│       │   │   ├── TrackDao.kt            # Track queries
-│       │   │   └── PlaylistDao.kt         # Playlist queries
-│       │   ├── model/
-│       │   │   ├── Track.kt               # Track entity
-│       │   │   └── RepeatMode.kt          # Repeat modes
-│       │   └── repository/
-│       │       └── MusicRepository.kt     # Data layer
-│       │
-│       ├── di/
-│       │   └── AppModule.kt               # Hilt dependency injection
-│       │
-│       ├── playback/
-│       │   └── PlaybackManager.kt         # ExoPlayer management
-│       │
-│       ├── service/
-│       │   └── PlaybackService.kt         # Background playback
-│       │
-│       ├── receiver/
-│       │   └── MediaButtonReceiver.kt     # Hardware button handler
-│       │
-│       └── ui/
-│           ├── navigation/
-│           │   └── Navigation.kt          # Navigation graph
-│           ├── screens/
-│           │   ├── HomeScreen.kt          # Home with quick actions
-│           │   ├── LibraryScreen.kt       # 6-tab library browser
-│           │   ├── NowPlayingScreen.kt    # Full player with vinyl
-│           │   ├── EqualizerScreen.kt     # 10-band EQ & effects
-│           │   ├── SearchScreen.kt        # Search with suggestions
-│           │   ├── QueueScreen.kt         # Queue management
-│           │   ├── SettingsScreen.kt      # App settings
-│           │   ├── ShuffleSettingsScreen.kt # 8 shuffle modes
-│           │   ├── PlaylistsScreen.kt     # Playlist management
-│           │   ├── DetailScreens.kt       # Album/Artist/Folder detail
-│           │   ├── TrackListItem.kt       # Reusable track components
-│           │   └── MiniPlayer.kt          # Mini player bar
-│           ├── theme/
-│           │   ├── Color.kt               # Color palette
-│           │   ├── Theme.kt               # Material 3 theme
-│           │   └── Type.kt                # Typography
-│           └── viewmodel/
-│               └── MainViewModel.kt       # Central ViewModel
-│
-├── build.gradle.kts                       # Top-level build
-├── settings.gradle.kts                    # Project settings
-└── README.md                              # This file
+| Platform | Command |
+|---|---|
+| **Build via GitHub Actions** (debug APK) | Push a tag matching `v*` (e.g., `git tag v1.1.0 && git push origin v1.1.0`). The workflow `.github/workflows/release.yml` will compile and upload `AuraPlay‑debug.apk`. |
+| **Local build** (requires Android SDK 30 + JDK 21) | `./gradlew :app:assembleDebug --no-daemon` |
+| **Obtainium auto‑update** | Add repository `Mylittlestories/AuraPlay` in Obtainium; it will watch for new `v*‑tags`. |
+
+---
+
+## 🛠️ Upgrade Roadmap (Phases 1‑4)
+
+| Phase | What changed | Why it matters |
+|---|---|---|
+| **1 – Toolchain** | Gradle 8.5, Media 3 1.3.0, Lifecycle 2.8.2, Compose BOM 2024.07.00, Kotlin 1.6.0 compiler extension | Modern compiler, better ExoPlayer APIs, future‑proof Compose features. |
+| **2 – UI & Dynamic Color** | `androidx.palette:palette:2.0.0`, Compose 1.6.0, Material You theming from album art | UI can automatically theme itself from each album’s cover. |
+| **3 – Playback & Networking** | Cross‑fade & gapless playback, Retrofit 2 + Gson (optional Navidrome/Subsonic/Jellyfin) | Smooth track transitions, gap‑less album playback, future‑proof server‑sync capability. |
+| **4 – CI / Release** | GitHub Actions workflow that installs Android 30, builds a debug APK, and makes the artifact available on every `v*‑tag` push. `github_repo` set for Obtainium auto‑update. | One‑click builds, automatic updates via Obtainium, ready for F‑Droid. |
+
+---
+
+## 🚀 GitHub Actions – Build Your APK
+
+The repository ships a ready‑to‑run workflow (`.github/workflows/release.yml`). On every push of a tag like `v1.1.0`:
+
+1. **Checkout** the code.  
+2. **Set up JDK 21** (Temurin).  
+3. **Install Android 30 SDK** and accept licences automatically.  
+4. **Cache** Gradle dependencies.  
+5. **Assemble** `app-debug.apk`.  
+6. **Upload** the APK as a workflow artifact.
+
+### Workflow file (`.github/workflows/release.yml`)
+
+```yaml
+name: AuraPlay Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: actions/setup-android@v2
+        with:
+          api-level: 30   # installs platform‑30 + build‑tools‑30, accepts licences
+
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}
+
+      - name: Assemble Debug
+        run: ./gradlew :app:assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: AuraPlay-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
 ```
 
----
+**How to trigger it**
 
-## 🛠️ Tech Stack
+```bash
+git tag v1.1.0          # bump version as you wish
+git push origin v1.1.0
+```
 
-| Component | Technology |
-|-----------|------------|
-| **Language** | Kotlin |
-| **UI** | Jetpack Compose |
-| **Design** | Material 3 / Material You |
-| **Audio** | ExoPlayer (Media3) |
-| **Database** | Room |
-| **DI** | Hilt |
-| **Images** | Coil |
-| **Architecture** | MVVM + Repository |
-| **Async** | Coroutines + Flow |
-| **Navigation** | Navigation Compose |
+Then go to the **Actions** tab on GitHub, watch the run, and download `AuraPlay‑debug.apk` from the artifacts.
 
 ---
 
-## 🚀 Getting Started
+## 📦 F‑Droid Ready
 
-### Prerequisites
-- Android Studio Hedgehog (2023.1.1) or later
-- Android SDK 34
-- Kotlin 1.9.20
+AuraPlay is **FOSS‑first**: the core player is completely offline, and optional network features (Navidrome/Subsonic/Jellyfin, lyrics, Deezer images) are disabled by default and can be turned on only if the user wants them. This makes it eligible for F‑Droid.
 
-### Build & Run
-1. Clone or open the project in Android Studio
-2. Sync Gradle dependencies
-3. Run on device or emulator (API 26+)
-4. Grant music permission when prompted
-5. Tap "Scan for Music" to load your library
+### What you need to add for F‑Droid compliance
 
----
+1. **`fdroid.cfg`** (optional) – place in the repo root with basic metadata, e.g.:
 
-## 📋 Permissions
+   ```ini
+   # F-Droid metadata for AuraPlay
+   # See https://docs.f-droid.org/en/docs/ConfigFiles/
+   ```
+2. **License file** – `LICENSE` (GPL‑3.0) is already present.
+3. **No proprietary dependencies** – the only optional ones are behind a toggle and use Retrofit‑based APIs; they are not compiled into the default build.
+4. **Release signing** – F‑Droid prefers release‑signed APKs. You can add a `signingConfigs.release` block in `build.gradle.kts` (a simple debug keystore works for testing) and modify the workflow to also build a **release** APK (`assembleRelease`). The workflow can then upload that artifact for you to submit to F‑Droid.
 
-| Permission | Purpose |
-|------------|---------|
-| `READ_MEDIA_AUDIO` | Access music files (Android 13+) |
-| `READ_EXTERNAL_STORAGE` | Access music files (Android 12-) |
-| `FOREGROUND_SERVICE` | Background playback |
-| `POST_NOTIFICATIONS` | Media notification |
-| `WAKE_LOCK` | Prevent sleep during playback |
-| `BLUETOOTH_CONNECT` | Bluetooth audio devices |
-| `MODIFY_AUDIO_SETTINGS` | Audio effects |
+### Optional: Add a Release‑APK job to the workflow
 
----
+If you want the CI to also produce a release‑signed APK (unsigned for now, but ready for your own keystore), add this after the debug step:
 
-## 🎯 Key Highlights
+```yaml
+      - name: Assemble Release (unsigned)
+        run: ./gradlew :app:assembleRelease --no-daemon
 
-### Inspired by Poweramp & Musicolet
-- **From Poweramp**: Advanced equalizer, audio effects, DAC-quality processing, vinyl animation
-- **From Musicolet**: Clean folder browsing, offline-first, playlist management, no internet required
-- **Unique to AuraPlay**: 8 smart shuffle modes, Material 3 design, modern Compose UI
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: AuraPlay-release
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+```
 
-### Performance
-- Instant search with debounce
-- Efficient Room database queries
-- Lazy loading for large libraries
-- Smooth 60fps animations
+You can later replace the unsigned build with a real release keystore by adding a `signingConfigs.release` block and adjusting the `android` block in `build.gradle.kts`.
 
 ---
 
 ## 📄 License
 
-This project is provided as-is for educational and personal use.
+AuraPlay is free software: you can redistribute and modify it under the terms of the **GNU General Public License v3.0** (see `LICENSE`).
 
 ---
 
-<div align="center">
-
-**Made with ❤️ for music lovers**
-
-*AuraPlay - Where Every Note Matters*
-
-</div>
+*Happy listening, and thank you for supporting free software!* 🎧

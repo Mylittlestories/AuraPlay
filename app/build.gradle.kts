@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.auraplay.player"
-    compileSdk = 34
+    compileSdk = 30
 
     defaultConfig {
         applicationId = "com.auraplay.player"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 30
         versionCode = 4
         versionName = "1.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -45,7 +45,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.5"
+        kotlinCompilerExtensionVersion = "1.6.0"
     }
 
     compileOptions {
@@ -73,7 +73,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.1")
 
     // Compose BOM
-    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    implementation(platform("androidx.compose:compose-bom:2024.07.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -101,6 +101,12 @@ dependencies {
 
     // Coil for album art
     implementation("io.coil-kt:coil-compose:2.5.0")
+    // Palette for dynamic color extraction from album art
+    implementation("androidx.palette:palette:2.0.0")
+
+    // Networking for self‑hosted services (Navidrome/Subsonic/Jellyfin)
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

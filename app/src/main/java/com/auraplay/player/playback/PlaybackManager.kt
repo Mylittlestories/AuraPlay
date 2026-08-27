@@ -83,6 +83,10 @@ class PlaybackManager @Inject constructor(
                 it.repeatMode = Player.REPEAT_MODE_OFF
                 audioEngine.setupPlayer(it)
             }
+            // Enable crossfade (ms) and gapless playback
+            player?.setCrossfadeEnabled(true) // default 1500ms, adjust as needed
+            player?.setGaplessPlaybackSupported(true)
+
             // Restart progress updates
             scope.launch {
                 while (isActive) {

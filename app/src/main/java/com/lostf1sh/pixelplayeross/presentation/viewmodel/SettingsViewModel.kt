@@ -76,6 +76,7 @@ data class SettingsUiState(
     val pcmFloatOutputSupported: Boolean = true,
     val crossfadeDuration: Int = 2000,
     val persistentShuffleEnabled: Boolean = false,
+    val preferUsbDacEnabled: Boolean = true,
     val folderBackGestureNavigation: Boolean = true,
     val lyricsSourcePreference: LyricsSourcePreference = LyricsSourcePreference.EMBEDDED_FIRST,
     val autoScanLrcFiles: Boolean = false,
@@ -655,6 +656,20 @@ class SettingsViewModel @Inject constructor(
     fun setPlaybackSpeed(speed: Float) {
         viewModelScope.launch {
             userPreferencesRepository.setPlaybackSpeed(speed)
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            userPreferencesRepository.preferUsbDacFlow.collect { enabled ->
+                _uiState.update { it.copy(preferUsbDacEnabled = enabled) }
+            }
+        }
+    }
+
+    fun setPreferUsbDacEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setPreferUsbDacEnabled(enabled)
         }
     }
 

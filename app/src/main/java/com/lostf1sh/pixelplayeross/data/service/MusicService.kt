@@ -453,6 +453,12 @@ class MusicService : MediaSessionService() {
         }
 
         serviceScope.launch {
+            userPreferencesRepository.preferUsbDacFlow.collect { enabled ->
+                engine.setPreferExternalDac(enabled)
+            }
+        }
+
+        serviceScope.launch {
             userPreferencesRepository.resumeOnHeadsetReconnectFlow.collect { enabled ->
                 resumeOnHeadsetReconnectEnabled = enabled
                 if (!enabled) {

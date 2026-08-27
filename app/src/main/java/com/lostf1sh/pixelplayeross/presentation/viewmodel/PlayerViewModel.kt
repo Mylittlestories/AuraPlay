@@ -47,6 +47,8 @@ import com.lostf1sh.pixelplayeross.data.model.Lyrics
 import com.lostf1sh.pixelplayeross.data.model.LyricsSourcePreference
 import com.lostf1sh.pixelplayeross.data.model.SearchFilterType
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.playlist.AuraShuffleEngine
+import com.lostf1sh.pixelplayeross.data.playlist.NlpPlaylistGenerator
 import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.toLibraryTabIdOrNull
 import com.lostf1sh.pixelplayeross.data.provider.SharedArtworkContentProvider
@@ -247,6 +249,8 @@ private data class ResolvedAlbumSelection(
 class PlayerViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val musicRepository: MusicRepository,
+    private val auraShuffleEngine: AuraShuffleEngine,
+    private val nlpPlaylistGenerator: NlpPlaylistGenerator,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val themePreferencesRepository: ThemePreferencesRepository,
     private val albumArtThemeDao: AlbumArtThemeDao,
@@ -1254,10 +1258,59 @@ class PlayerViewModel @Inject constructor(
         Timber.tag("ShuffleDebug").d("shuffleAllSongs called.")
         
         viewModelScope.launch {
-            val randomSongs = musicRepository.getRandomSongs(limit = 500)
-            if (randomSongs.isNotEmpty()) {
-                playSongsShuffled(randomSongs, queueName, startAtZero = true)
+            val orderedQueue = auraShuffleEngine.generateQueue()
+            if (orderedQueue.isNotEmpty()) {
+                playSongsOrdered(orderedQueue, queueName)
             }
+        }
+    }
+
+    /**
+     * Plays [songsToPlay] in the exact given order. Used by AuraShuffle and Mood Radio,
+     * which pre-compute an intelligent ordering — a random reshuffle would destroy it.
+     */
+    fun playSongsOrdered(
+        songsToPlay: List<Song>,
+        queueName: String = "None",
+        playlistId: String? = null
+    ) {
+        cancelPendingFullQueuePlayback()
+        val requestToken = beginDirectPlaybackRequest()
+        directPlaybackJob = viewModelScope.launch {
+            if (songsToPlay.isEmpty()) {
+                sendToast(context.getString(R.string.player_no_songs_to_shuffle))
+                return@launch
+            }
+            throwIfDirectPlaybackRequestIsStale(requestToken)
+            transitionSchedulerJob?.cancel()
+
+            playbackStateHolder.updateStablePlayerState { it.copy(isShuffleEnabled = false) }
+            launch { userPreferencesRepository.setShuffleOn(false) }
+
+            internalPlaySongs(songsToPlay, songsToPlay.first(), queueName, playlistId)
+            if (requestToken == directPlaybackToken) {
+                directPlaybackJob = null
+            }
+        }
+    }
+
+    /**
+     * Mood Radio: builds a queue matching [moodQuery] ("chill", "workout energetic", …)
+     * with the offline NLP intent engine (genre families, energy bands, tagged BPM,
+     * engagement stats) and starts playback immediately.
+     */
+    fun playMoodRadio(moodQuery: String, queueName: String) {
+        viewModelScope.launch {
+            val songs = nlpPlaylistGenerator.generate(
+                description = moodQuery,
+                minLength = 15,
+                maxLength = 80
+            )
+            if (songs.isEmpty()) {
+                sendToast(context.getString(R.string.mood_radio_empty))
+                return@launch
+            }
+            playSongsOrdered(songs, queueName)
         }
     }
 

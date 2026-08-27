@@ -272,4 +272,19 @@
     <string name="musicbrainz_match_score">Match confidence: %1$d%%</string>
     <string name="musicbrainz_applied">MusicBrainz identifiers saved. Missing year and placeholder names were enriched.</string>
 
+
+    <!-- AuraPlay: Mood Radio & intelligent shuffle -->
+    <string name="mood_radio_title">Mood Radio</string>
+    <string name="mood_radio_subtitle">Tap a mood — AuraPlay builds the soundtrack</string>
+    <string name="mood_radio_empty">No songs matched that mood yet</string>
+    <string name="aura_shuffle_title">AuraShuffle</string>
+    <string name="aura_shuffle_subtitle">Whole library, weighted &amp; artist-spaced — never the same twice</string>
+    <string name="mood_chip_chill">Chill</string>
+    <string name="mood_chip_energy">Energy</string>
+    <string name="mood_chip_happy">Happy</string>
+    <string name="mood_chip_melancholy">Melancholy</string>
+    <string name="mood_chip_discovery">Discovery</string>
+    <string name="mood_chip_favorites">Favorites</string>
+    <string name="setcat_prefer_usb_dac_title">Prefer external DAC / USB audio</string>
+    <string name="setcat_prefer_usb_dac_subtitle">Route playback straight to a connected USB DAC or audio interface for the cleanest signal path</string>
 </resources>

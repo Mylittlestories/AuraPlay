@@ -84,6 +84,7 @@ import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.preferences.CollagePattern
 import com.lostf1sh.pixelplayeross.presentation.components.AlbumArtCollage
+import com.lostf1sh.pixelplayeross.presentation.components.AuraMoodSection
 import com.lostf1sh.pixelplayeross.presentation.components.BetaInfoBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.ChangelogBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.jellyfin.dashboard.JellyfinDashboardViewModel
@@ -362,6 +363,13 @@ fun HomeScreen(
                             }
                         )
                     }
+                }
+
+                item(
+                    key = "aura_mood_section",
+                    contentType = "aura_mood_section"
+                ) {
+                    AuraMoodSection(playerViewModel = playerViewModel)
                 }
 
                 if (yourMixSongs.isNotEmpty()) {

@@ -873,6 +873,14 @@ fun SettingsCategoryScreen(
                                     modifier = Modifier.settingHighlight("item_playback_audio_output_mode", highlightKey)
                                 )
                                 SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_prefer_usb_dac_title),
+                                    subtitle = stringResource(R.string.setcat_prefer_usb_dac_subtitle),
+                                    checked = uiState.preferUsbDacEnabled,
+                                    onCheckedChange = { settingsViewModel.setPreferUsbDacEnabled(it) },
+                                    leadingIcon = { Icon(painterResource(R.drawable.outline_high_quality_24), null, tint = MaterialTheme.colorScheme.secondary) },
+                                    modifier = Modifier.settingHighlight("item_playback_prefer_usb_dac", highlightKey)
+                                )
+                                SwitchSettingItem(
                                     title = stringResource(R.string.setcat_persistent_shuffle_title),
                                     subtitle = stringResource(R.string.setcat_persistent_shuffle_subtitle),
                                     checked = uiState.persistentShuffleEnabled,

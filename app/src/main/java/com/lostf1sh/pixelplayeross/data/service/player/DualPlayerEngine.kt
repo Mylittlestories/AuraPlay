@@ -4,6 +4,8 @@ import android.app.ActivityManager
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
@@ -1213,6 +1215,54 @@ class DualPlayerEngine @Inject constructor(
         if (audioOutputMode == resolvedMode) return
         audioOutputMode = resolvedMode
         rebuildPlayersPreservingMasterState("Audio output mode set to ${resolvedMode.storageKey}")
+    }
+
+    // ---------------------------------------------------------------------
+    // Audiophile output: prefer an external USB DAC / audio interface.
+    //
+    // When enabled (default) and a USB audio device is attached, both deck
+    // players get their preferred output device set to it, which bypasses
+    // the phone's internal DAC/resampler stage — the closest an Android app
+    // can get to a dedicated DAC signal path. A device callback re-applies
+    // the routing the moment a DAC is plugged or unplugged.
+    // ---------------------------------------------------------------------
+
+    @Volatile private var preferExternalDacEnabled = false
+    @Volatile private var usbDeviceCallbackRegistered = false
+
+    private val usbAudioDeviceCallback = object : AudioDeviceCallback() {
+        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
+            applyPreferredOutputDevice()
+        }
+
+        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
+            applyPreferredOutputDevice()
+        }
+    }
+
+    fun setPreferExternalDac(enabled: Boolean) {
+        if (preferExternalDacEnabled == enabled) return
+        preferExternalDacEnabled = enabled
+        if (!usbDeviceCallbackRegistered) {
+            audioManager.registerAudioDeviceCallback(usbAudioDeviceCallback, null)
+            usbDeviceCallbackRegistered = true
+        }
+        applyPreferredOutputDevice()
+    }
+
+    private fun findExternalDacDevice(): AudioDeviceInfo? =
+        audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull { device ->
+            device.type == AudioDeviceInfo.TYPE_USB_DEVICE ||
+                device.type == AudioDeviceInfo.TYPE_USB_HEADSET ||
+                device.type == AudioDeviceInfo.TYPE_USB_ACCESSORY
+        }
+
+    private fun applyPreferredOutputDevice() {
+        val device = if (preferExternalDacEnabled) findExternalDacDevice() else null
+        playerA.setPreferredDevice(device)
+        playerB?.setPreferredDevice(device)
+        Timber.tag("DualPlayerEngine")
+            .i("Preferred output device -> ${device?.productName ?: "system default"}")
     }
 
     suspend fun resolveCloudUri(uri: Uri): Uri = withContext(Dispatchers.IO) {

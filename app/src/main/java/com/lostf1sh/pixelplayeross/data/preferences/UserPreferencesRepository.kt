@@ -151,6 +151,7 @@ constructor(
         val REPEAT_MODE = intPreferencesKey("repeat_mode")
         val IS_SHUFFLE_ON = booleanPreferencesKey("is_shuffle_on")
         val PERSISTENT_SHUFFLE_ENABLED = booleanPreferencesKey("persistent_shuffle_enabled")
+        val PREFER_USB_DAC_ENABLED = booleanPreferencesKey("prefer_usb_dac_enabled")
         val RESUME_ON_HEADSET_RECONNECT = booleanPreferencesKey("resume_on_headset_reconnect")
         val SHOW_QUEUE_HISTORY = booleanPreferencesKey("show_queue_history")
         val PLAYBACK_QUEUE_SNAPSHOT = stringPreferencesKey("playback_queue_snapshot_v1")
@@ -390,6 +391,16 @@ constructor(
 
     suspend fun setPersistentShuffleEnabled(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.PERSISTENT_SHUFFLE_ENABLED] = enabled }
+    }
+
+    /** Route playback to an external USB DAC / audio interface when one is connected. */
+    val preferUsbDacFlow: Flow<Boolean> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.PREFER_USB_DAC_ENABLED] ?: true
+        }
+
+    suspend fun setPreferUsbDacEnabled(enabled: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.PREFER_USB_DAC_ENABLED] = enabled }
     }
 
     val playbackQueueSnapshotFlow: Flow<PlaybackQueueSnapshot?> =

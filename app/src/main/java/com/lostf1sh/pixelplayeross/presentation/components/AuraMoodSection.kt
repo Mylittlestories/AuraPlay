@@ -172,6 +172,7 @@ private fun AuraOrb(modifier: Modifier = Modifier) {
         MaterialTheme.colorScheme.secondary,
         MaterialTheme.colorScheme.primary
     )
+    val coreColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
     Canvas(
         modifier = modifier.graphicsLayer {
             scaleX = breathe
@@ -197,7 +198,7 @@ private fun AuraOrb(modifier: Modifier = Modifier) {
             )
         }
         drawCircle(
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+            color = coreColor,
             radius = radius * 0.3f
         )
     }

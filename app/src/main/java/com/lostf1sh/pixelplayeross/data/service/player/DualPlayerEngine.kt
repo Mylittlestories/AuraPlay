@@ -1259,8 +1259,8 @@ class DualPlayerEngine @Inject constructor(
 
     private fun applyPreferredOutputDevice() {
         val device = if (preferExternalDacEnabled) findExternalDacDevice() else null
-        playerA.setPreferredDevice(device)
-        playerB?.setPreferredDevice(device)
+        playerA.setPreferredAudioDevice(device)
+        playerB?.setPreferredAudioDevice(device)
         Timber.tag("DualPlayerEngine")
             .i("Preferred output device -> ${device?.productName ?: "system default"}")
     }

@@ -49,5 +49,5 @@ private fun Context.createVectorThemedContext(isDarkTheme: Boolean): Context {
             if (isDarkTheme) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
     }
     val modeContext = createConfigurationContext(themedConfiguration)
-    return ContextThemeWrapper(modeContext, R.style.Theme_PixelPlayer)
+    return ContextThemeWrapper(modeContext, R.style.Theme_AuraPlay)
 }

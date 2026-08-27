@@ -1,16 +1,10 @@
-// Top-level build file for AuraPlay
-// Keep plugin artifacts on the buildscript classpath so CI/Gradle can resolve
-// Hilt and KSP reliably even when plugin marker resolution is flaky.
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:8.2.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20")
-        classpath("com.google.dagger:hilt-android-gradle-plugin:2.48")
-        classpath("com.google.devtools.ksp:symbol-processing-gradle-plugin:1.9.20-1.0.14")
-    }
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.dagger.hilt.android) apply false
+    alias(libs.plugins.android.test) apply false
+    alias(libs.plugins.baselineprofile) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }

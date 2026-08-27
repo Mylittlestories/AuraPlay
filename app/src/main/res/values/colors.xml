@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="dark_background">#FF101018</color>
-    <color name="dark_surface">#FF1B1B28</color>
-    <color name="teal_primary">#FF4ECDC4</color>
-    <color name="amber_secondary">#FFFFB347</color>
+
+    <color name="pixelplayer_widget_background_color">#FF2C1D4D</color>
+
+    <color name="pixel_play_purple_dark">#19191B</color>
+    <color name="light_background">#EDEDED</color>
 </resources>

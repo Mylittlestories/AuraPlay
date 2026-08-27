@@ -1,0 +1,108 @@
+name: Android Build
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build universal release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Compute version
+        id: version
+        run: |
+          BASE_NAME="$(grep '^APP_VERSION_NAME=' gradle.properties | cut -d= -f2)"
+          BASE_CODE="$(grep '^APP_VERSION_CODE=' gradle.properties | cut -d= -f2)"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            NAME="${GITHUB_REF#refs/tags/v}"
+          else
+            NAME="$BASE_NAME-dev.${GITHUB_RUN_NUMBER}"
+          fi
+          CODE="$(( BASE_CODE + GITHUB_RUN_NUMBER ))"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.2.0
+
+      # The release keystore lives in the CI_KEYSTORE_B64 + CI_KEYSTORE_PASSWORD
+      # repo secrets so every build signs with the same stable key and updates
+      # install over each other. Without the secrets we fall back to a
+      # throwaway keystore (signature varies per run).
+      - name: Set up signing keystore
+        env:
+          CI_KEYSTORE_B64: ${{ secrets.CI_KEYSTORE_B64 }}
+          CI_KEYSTORE_PASSWORD: ${{ secrets.CI_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$CI_KEYSTORE_B64" ] && [ -n "$CI_KEYSTORE_PASSWORD" ]; then
+            KEYSTORE_PASSWORD="$CI_KEYSTORE_PASSWORD"
+            printf '%s' "$CI_KEYSTORE_B64" | base64 -d > auraplay-ci.jks
+          else
+            KEYSTORE_PASSWORD="$(openssl rand -hex 24)"
+            keytool -genkey -v -keystore auraplay-ci.jks -alias auraplay-ci-key -keyalg RSA -keysize 4096 -validity 10000 \
+              -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
+              -dname "CN=AuraPlay CI Throwaway, OU=Dev, O=AuraPlay, L=World, S=World, C=US"
+          fi
+          {
+            echo "storeFile=auraplay-ci.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=auraplay-ci-key"
+            echo "keyPassword=$KEYSTORE_PASSWORD"
+          } > keystore.properties
+
+      - name: Build universal release APK
+        run: >
+          ./gradlew :app:assembleRelease
+          -Ppixelplayer.enableAbiSplits=false
+          -PAPP_VERSION_NAME=${{ steps.version.outputs.name }}
+          -PAPP_VERSION_CODE=${{ steps.version.outputs.code }}
+
+      - name: Verify APK
+        run: |
+          BUILD_TOOLS_VERSION="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
+          APK="app/build/outputs/apk/release/app-release.apk"
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt2" dump badging "$APK" | head -3
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner" verify --verbose "$APK" | head -5
+
+      - name: Rename APK
+        run: |
+          mkdir -p release-apks
+          cp app/build/outputs/apk/release/app-release.apk \
+             "release-apks/AuraPlay-${{ steps.version.outputs.name }}-universal.apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: AuraPlay-${{ steps.version.outputs.name }}-universal
+          path: release-apks/*.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish GitHub release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "${GITHUB_REF#refs/tags/}"
+          --title "AuraPlay ${{ steps.version.outputs.name }}"
+          --generate-notes
+          release-apks/*.apk

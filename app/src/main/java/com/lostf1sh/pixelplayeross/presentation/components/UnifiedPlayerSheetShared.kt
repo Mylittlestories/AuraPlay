@@ -137,10 +137,12 @@ internal fun MiniPlayerContentInternal(
                             rotate(if (isPlaying) auroraAngle else 135f) {
                                 drawCircle(
                                     brush = Brush.sweepGradient(
-                                        Aurora.Violet,
-                                        Aurora.Magenta,
-                                        Aurora.Amber,
-                                        Aurora.Violet
+                                        listOf(
+                                            Aurora.Violet,
+                                            Aurora.Magenta,
+                                            Aurora.Amber,
+                                            Aurora.Violet
+                                        )
                                     ),
                                     radius = radius,
                                     style = Stroke(width = stroke),

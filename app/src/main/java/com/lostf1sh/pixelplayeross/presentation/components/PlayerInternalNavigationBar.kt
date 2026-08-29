@@ -125,6 +125,16 @@ private fun PlayerInternalNavigationItemsRow(
             val selectedColor = MaterialTheme.colorScheme.primary
             val unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
             val indicatorColorFromTheme = MaterialTheme.colorScheme.secondaryContainer
+            // AuraPlay signature: the selected-tab pill glows with a soft
+            // aurora tint instead of a flat container color.
+            val navPrimary = MaterialTheme.colorScheme.primary
+            val navTertiary = MaterialTheme.colorScheme.tertiary
+            val auroraIndicatorBrush = remember(navPrimary, navTertiary) {
+                com.lostf1sh.pixelplayeross.ui.theme.Aurora.tint(
+                    primary = navPrimary,
+                    tertiary = navTertiary
+                )
+            }
 
             val iconPainterResId = if (isSelected && item.selectedIconResId != null && item.selectedIconResId != 0) {
                 item.selectedIconResId
@@ -211,7 +221,8 @@ private fun PlayerInternalNavigationItemsRow(
                 unselectedIconColor = unselectedColor,
                 selectedTextColor = selectedColor,
                 unselectedTextColor = unselectedColor,
-                indicatorColor = indicatorColorFromTheme
+                indicatorColor = indicatorColorFromTheme,
+                indicatorBrush = auroraIndicatorBrush
             )
         }
     }

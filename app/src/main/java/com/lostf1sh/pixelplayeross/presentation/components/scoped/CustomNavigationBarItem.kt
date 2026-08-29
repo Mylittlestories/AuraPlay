@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layoutId
@@ -64,6 +65,7 @@ fun RowScope.CustomNavigationBarItem(
     selectedTextColor: Color = MaterialTheme.colorScheme.onSurface,
     unselectedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     indicatorColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    indicatorBrush: Brush? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
 ) {
     val iconColor by animateColorAsState(
@@ -136,9 +138,18 @@ fun RowScope.CustomNavigationBarItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = indicatorPadding)
-                        .background(
-                            color = indicatorColor,
-                            shape = indicatorShape
+                        .then(
+                            if (indicatorBrush != null) {
+                                Modifier.background(
+                                    brush = indicatorBrush,
+                                    shape = indicatorShape
+                                )
+                            } else {
+                                Modifier.background(
+                                    color = indicatorColor,
+                                    shape = indicatorShape
+                                )
+                            }
                         )
                 )
             }

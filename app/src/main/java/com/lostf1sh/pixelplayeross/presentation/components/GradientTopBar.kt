@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.lostf1sh.pixelplayeross.BuildConfig
 import com.lostf1sh.pixelplayeross.R
+import com.lostf1sh.pixelplayeross.ui.theme.Aurora
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerStatusBarStyle
 import androidx.compose.ui.res.stringResource
@@ -118,7 +119,19 @@ fun HomeGradientTopBar(
 
     TopAppBar(
         modifier = Modifier.background(surfaceContainerHigh.copy(alpha = animatedAlpha)),
-        title = { },
+        title = {
+            // AuraPlay wordmark: the Sonic Aurora gradient carries the brand
+            // from the launcher icon into the app's home surface.
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    brush = Aurora.brush(),
+                    fontWeight = FontWeight.Bold
+                ),
+                fontFamily = RoundedSans,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        },
         navigationIcon = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

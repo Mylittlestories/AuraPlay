@@ -18,7 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,6 +45,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -49,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.ui.theme.Aurora
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 
 internal val LocalMaterialTheme = staticCompositionLocalOf<ColorScheme> { error("No ColorScheme provided") }
@@ -91,6 +102,25 @@ internal fun MiniPlayerContentInternal(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val albumArtModel = song.albumArtUriString?.takeIf { it.isNotBlank() }
+
+        // AuraPlay signature: a slowly orbiting aurora ring around the mini
+        // player artwork — bright while playing, faint while paused. Echoes
+        // the Sonic Aurora launcher icon.
+        val auroraSpin = rememberInfiniteTransition(label = "AuroraRingSpin")
+        val auroraAngle by auroraSpin.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 8_000, easing = LinearEasing)
+            ),
+            label = "AuroraRingAngle"
+        )
+        val auroraRingAlpha by animateFloatAsState(
+            targetValue = if (isPlaying) 0.95f else 0.22f,
+            animationSpec = tween(durationMillis = 500),
+            label = "AuroraRingAlpha"
+        )
+
         Box(contentAlignment = Alignment.Center) {
             key(song.id) {
                 SmartImage(
@@ -98,7 +128,26 @@ internal fun MiniPlayerContentInternal(
                     contentDescription = stringResource(R.string.cd_album_art_for_title, song.title),
                     shape = CircleShape,
                     targetSize = Size(150, 150),
-                    modifier = Modifier.size(44.dp)
+                    modifier = Modifier
+                        .size(44.dp)
+                        .drawBehind {
+                            val stroke = 2.dp.toPx()
+                            val radius = size.minDimension / 2f + stroke
+                            // Spin only while playing; rest at a fixed angle otherwise.
+                            rotate(if (isPlaying) auroraAngle else 135f) {
+                                drawCircle(
+                                    brush = Brush.sweepGradient(
+                                        Aurora.Violet,
+                                        Aurora.Magenta,
+                                        Aurora.Amber,
+                                        Aurora.Violet
+                                    ),
+                                    radius = radius,
+                                    style = Stroke(width = stroke),
+                                    alpha = auroraRingAlpha
+                                )
+                            }
+                        }
                 )
             }
             if (isOutputConnecting) {

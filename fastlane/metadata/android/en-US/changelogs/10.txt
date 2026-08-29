@@ -1,0 +1,9 @@
+AuraPlay 2.3.1 — critical playback fix + a visual identity of its own:
+
+* Fixed the 2.3.0 regression that could stop playback on every track: the in-app audiophile DSP stage now follows Media3's exact buffer lifecycle, so audio never stalls or crashes a few dozen milliseconds into a song. Playback works again across tracks, with and without DSP.
+* The DSP stage also reuses its output buffers instead of reallocating them for every audio buffer — less allocation churn on the audio thread.
+* New "soft aurora" shape system: rounder, continuous silhouettes across cards, chips, sheets and dialogs — a design language of its own rather than stock Material corners.
+* Home screen wordmark: the AuraPlay name now appears in the signature Sonic Aurora gradient (violet → magenta → amber).
+* The selected tab in the bottom bar glows with a soft aurora tint instead of a flat container color.
+* Mini player signature: a slowly orbiting aurora ring around the album art — bright while music plays, faint while paused.
+* Issue-tracker and changelog links now point to the AuraPlay repository.

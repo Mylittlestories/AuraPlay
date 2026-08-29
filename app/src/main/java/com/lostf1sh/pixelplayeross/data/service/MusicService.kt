@@ -166,6 +166,8 @@ class MusicService : MediaSessionService() {
     @Inject
     lateinit var equalizerManager: EqualizerManager
     @Inject
+    lateinit var audiophileDspState: com.lostf1sh.pixelplayeross.data.service.player.AudiophileDspState
+    @Inject
     lateinit var externalAudioEffectSession: ExternalAudioEffectSession
     @Inject
     lateinit var colorSchemeProcessor: ColorSchemeProcessor
@@ -455,6 +457,25 @@ class MusicService : MediaSessionService() {
         serviceScope.launch {
             userPreferencesRepository.preferUsbDacFlow.collect { enabled ->
                 engine.setPreferExternalDac(enabled)
+            }
+        }
+
+        // Audiophile DSP stage: preamp / limiter / Pure Direct bypass.
+        serviceScope.launch {
+            userPreferencesRepository.audiophilePreampDbFlow.collect { db ->
+                audiophileDspState.preampDb = db
+            }
+        }
+
+        serviceScope.launch {
+            userPreferencesRepository.audiophileLimiterEnabledFlow.collect { enabled ->
+                audiophileDspState.limiterEnabled = enabled
+            }
+        }
+
+        serviceScope.launch {
+            userPreferencesRepository.pureDirectEnabledFlow.collect { enabled ->
+                audiophileDspState.pureDirect = enabled
             }
         }
 

@@ -152,6 +152,18 @@ constructor(
         val IS_SHUFFLE_ON = booleanPreferencesKey("is_shuffle_on")
         val PERSISTENT_SHUFFLE_ENABLED = booleanPreferencesKey("persistent_shuffle_enabled")
         val PREFER_USB_DAC_ENABLED = booleanPreferencesKey("prefer_usb_dac_enabled")
+
+        // ---- Audiophile DSP (Sound Engine) ----
+        val AUDIOPHILE_PREAMP_DB =
+            androidx.datastore.preferences.core.floatPreferencesKey("audiophile_preamp_db")
+        val AUDIOPHILE_LIMITER_ENABLED =
+            booleanPreferencesKey("audiophile_limiter_enabled")
+        val PURE_DIRECT_ENABLED =
+            booleanPreferencesKey("pure_direct_enabled")
+        val PURE_DIRECT_PREVIOUS_OUTPUT_MODE =
+            stringPreferencesKey("pure_direct_previous_output_mode")
+        val PLAYER_VISUALIZER_ENABLED =
+            booleanPreferencesKey("player_visualizer_enabled")
         val RESUME_ON_HEADSET_RECONNECT = booleanPreferencesKey("resume_on_headset_reconnect")
         val SHOW_QUEUE_HISTORY = booleanPreferencesKey("show_queue_history")
         val PLAYBACK_QUEUE_SNAPSHOT = stringPreferencesKey("playback_queue_snapshot_v1")
@@ -401,6 +413,74 @@ constructor(
 
     suspend fun setPreferUsbDacEnabled(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.PREFER_USB_DAC_ENABLED] = enabled }
+    }
+
+    // ---------------------------------------------------------------------
+    // Audiophile DSP (Sound Engine)
+    // ---------------------------------------------------------------------
+
+    /** Global preamp (dB) applied by the in-app audiophile processor. */
+    val audiophilePreampDbFlow: Flow<Float> =
+        dataStore.data.map { preferences ->
+            (preferences[PreferencesKeys.AUDIOPHILE_PREAMP_DB] ?: 0f).coerceIn(-15f, 12f)
+        }
+
+    suspend fun setAudiophilePreampDb(db: Float) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AUDIOPHILE_PREAMP_DB] = db.coerceIn(-15f, 12f)
+        }
+    }
+
+    /** Whether the brickwall true-peak limiter guards the output. */
+    val audiophileLimiterEnabledFlow: Flow<Boolean> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.AUDIOPHILE_LIMITER_ENABLED] ?: false
+        }
+
+    suspend fun setAudiophileLimiterEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AUDIOPHILE_LIMITER_ENABLED] = enabled
+        }
+    }
+
+    /** Pure Direct: bypass every in-app processing stage. */
+    val pureDirectEnabledFlow: Flow<Boolean> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.PURE_DIRECT_ENABLED] ?: false
+        }
+
+    suspend fun setPureDirectEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PURE_DIRECT_ENABLED] = enabled
+        }
+    }
+
+    /** Output mode to restore when Pure Direct is switched back off. */
+    val pureDirectPreviousOutputModeFlow: Flow<String?> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.PURE_DIRECT_PREVIOUS_OUTPUT_MODE]
+        }
+
+    suspend fun setPureDirectPreviousOutputMode(mode: String?) {
+        dataStore.edit { preferences ->
+            if (mode == null) {
+                preferences.remove(PreferencesKeys.PURE_DIRECT_PREVIOUS_OUTPUT_MODE)
+            } else {
+                preferences[PreferencesKeys.PURE_DIRECT_PREVIOUS_OUTPUT_MODE] = mode
+            }
+        }
+    }
+
+    /** Whether the Now-Playing spectrum visualizer is shown. */
+    val playerVisualizerEnabledFlow: Flow<Boolean> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.PLAYER_VISUALIZER_ENABLED] ?: true
+        }
+
+    suspend fun setPlayerVisualizerEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PLAYER_VISUALIZER_ENABLED] = enabled
+        }
     }
 
     val playbackQueueSnapshotFlow: Flow<PlaybackQueueSnapshot?> =

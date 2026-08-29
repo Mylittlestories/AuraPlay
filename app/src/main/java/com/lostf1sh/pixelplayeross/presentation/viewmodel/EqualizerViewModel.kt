@@ -66,6 +66,7 @@ data class EqualizerUiState(
 class EqualizerViewModel @Inject constructor(
     private val equalizerManager: EqualizerManager,
     private val equalizerPreferencesRepository: EqualizerPreferencesRepository,
+    private val userPreferencesRepository: com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository,
     private val dualPlayerEngine: DualPlayerEngine,
     @param:AppScope private val appScope: CoroutineScope,
     @param:dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
@@ -268,6 +269,22 @@ class EqualizerViewModel @Inject constructor(
 
     fun toggleEqualizer() {
         setEnabled(!_uiState.value.isEnabled)
+    }
+
+    /**
+     * Applies an AutoEQ headphone-correction profile: sets the 10 graphic-EQ
+     * bands, switches the equalizer on, and stages the matching clean preamp
+     * in the audiophile DSP so boosted bands get the headroom they expect.
+     */
+    fun applyAutoEqProfile(profile: com.lostf1sh.pixelplayeross.data.equalizer.AutoEqProfile) {
+        selectPreset(profile.toPreset())
+        if (!_uiState.value.isEnabled) {
+            setEnabled(true)
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.setAudiophilePreampDb(profile.preampDb)
+        }
+        Timber.tag(TAG).d("Applied AutoEQ profile: %s (preamp %.1f dB)", profile.model, profile.preampDb)
     }
     
     fun selectPreset(preset: EqualizerPreset) {

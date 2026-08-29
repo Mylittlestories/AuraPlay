@@ -77,6 +77,10 @@ data class SettingsUiState(
     val crossfadeDuration: Int = 2000,
     val persistentShuffleEnabled: Boolean = false,
     val preferUsbDacEnabled: Boolean = true,
+    val audiophilePreampDb: Float = 0f,
+    val audiophileLimiterEnabled: Boolean = false,
+    val pureDirectEnabled: Boolean = false,
+    val playerVisualizerEnabled: Boolean = true,
     val folderBackGestureNavigation: Boolean = true,
     val lyricsSourcePreference: LyricsSourcePreference = LyricsSourcePreference.EMBEDDED_FIRST,
     val autoScanLrcFiles: Boolean = false,
@@ -179,6 +183,8 @@ class SettingsViewModel @Inject constructor(
     private val lyricsRepository: LyricsRepository,
     private val musicRepository: MusicRepository,
     private val backupManager: BackupManager,
+    private val equalizerManager: com.lostf1sh.pixelplayeross.data.equalizer.EqualizerManager,
+    private val equalizerPreferencesRepository: com.lostf1sh.pixelplayeross.data.preferences.EqualizerPreferencesRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -664,6 +670,89 @@ class SettingsViewModel @Inject constructor(
             userPreferencesRepository.preferUsbDacFlow.collect { enabled ->
                 _uiState.update { it.copy(preferUsbDacEnabled = enabled) }
             }
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Audiophile DSP (Sound Engine)
+    // ---------------------------------------------------------------------
+
+    init {
+        viewModelScope.launch {
+            userPreferencesRepository.audiophilePreampDbFlow.collect { db ->
+                _uiState.update { it.copy(audiophilePreampDb = db) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.audiophileLimiterEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(audiophileLimiterEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.pureDirectEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(pureDirectEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferencesRepository.playerVisualizerEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(playerVisualizerEnabled = enabled) }
+            }
+        }
+    }
+
+    fun setAudiophilePreampDb(db: Float) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAudiophilePreampDb(db)
+        }
+    }
+
+    fun setAudiophileLimiterEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAudiophileLimiterEnabled(enabled)
+        }
+    }
+
+    fun setPlayerVisualizerEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setPlayerVisualizerEnabled(enabled)
+        }
+    }
+
+    /**
+     * Pure Direct: hand PCM to Android through the stock Media3 audio sink with
+     * every in-app processing stage (EQ stack, DSP preamp/limiter) switched off.
+     * The previous output mode is remembered and restored when switched back off.
+     */
+    fun setPureDirectEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (enabled) {
+                userPreferencesRepository.setPureDirectPreviousOutputMode(
+                    _uiState.value.audioOutputMode.storageKey
+                )
+                // Silence the system EQ stack both at runtime and persisted.
+                equalizerManager.setEnabled(false)
+                equalizerManager.setBassBoostEnabled(false)
+                equalizerManager.setVirtualizerEnabled(false)
+                equalizerManager.setLoudnessEnhancerEnabled(false)
+                equalizerPreferencesRepository.setEqualizerEnabled(false)
+                equalizerPreferencesRepository.setBassBoostEnabled(false)
+                equalizerPreferencesRepository.setVirtualizerEnabled(false)
+                equalizerPreferencesRepository.setLoudnessEnhancerEnabled(false)
+                userPreferencesRepository.setAudioOutputMode(AudioOutputMode.DIRECT)
+            } else {
+                val previousMode = userPreferencesRepository
+                    .pureDirectPreviousOutputModeFlow
+                    .firstOrNull()
+                val restoreMode = if (previousMode != null) {
+                    AudioOutputMode.fromStorageKey(previousMode)
+                } else {
+                    AudioOutputMode.SYSTEM_DEFAULT
+                }
+                userPreferencesRepository.setAudioOutputMode(restoreMode)
+                userPreferencesRepository.setPureDirectPreviousOutputMode(null)
+            }
+            userPreferencesRepository.setPureDirectEnabled(enabled)
+            _uiState.update { it.copy(pureDirectEnabled = enabled) }
         }
     }
 

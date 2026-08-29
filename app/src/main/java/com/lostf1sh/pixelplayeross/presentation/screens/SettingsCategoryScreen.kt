@@ -614,6 +614,14 @@ fun SettingsCategoryScreen(
                                     leadingIcon = { Icon(painterResource(R.drawable.rounded_attach_file_24), null, tint = MaterialTheme.colorScheme.secondary) },
                                     modifier = Modifier.settingHighlight("item_appearance_show_player_file_info", highlightKey)
                                 )
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_player_visualizer_title),
+                                    subtitle = stringResource(R.string.setcat_player_visualizer_subtitle),
+                                    checked = uiState.playerVisualizerEnabled,
+                                    onCheckedChange = { settingsViewModel.setPlayerVisualizerEnabled(it) },
+                                    leadingIcon = { Icon(painterResource(R.drawable.rounded_monitoring_24), null, tint = MaterialTheme.colorScheme.secondary) },
+                                    modifier = Modifier.settingHighlight("item_appearance_player_visualizer", highlightKey)
+                                )
                                 SettingsItem(
                                     title = stringResource(R.string.setcat_album_art_palette_title),
                                     subtitle = stringResource(R.string.setcat_album_art_palette_subtitle, uiState.albumArtPaletteStyle.label),

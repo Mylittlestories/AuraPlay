@@ -7,6 +7,35 @@ All notable changes to PixelPlayerOSS will be documented in this file.
 ### Fixed
 - Jellyfin playlists no longer go missing on Jellyfin 10.10 and newer, where playlists can hold mixed content and audio playlists are often reported without a media type.
 
+## [2.3.0] — AuraPlay audiophile update
+
+### Added
+- **AutoEQ headphone correction** — curated correction profiles for 35+ popular headphones
+  and earphones (Sennheiser HD series, Beyerdynamic DT series, Sony WH/WF, Hifiman, AKG,
+  Moondrop, Truthear, KZ, AirPods, Galaxy Buds, …) distilled from Harman-target AutoEq
+  corrections, applied to the 10-band graphic EQ with a matching preamp. Searchable picker
+  in the Equalizer; fully offline.
+- **Audiophile DSP stage** — an in-app preamp (−15…+12 dB) and a brickwall true-peak limiter
+  (−1 dBFS ceiling, 2.5 ms lookahead, 60 ms release, stereo-linked) running as a Media3
+  audio processor at the end of the chain. Boosted EQ curves and loud masters can no longer
+  clip. Exposed on the Sound Engine screen together with a live signal-chain view of the
+  DSP stage.
+- **Pure Direct mode** — one switch that bypasses every in-app processing stage (EQ stack,
+  DSP preamp/limiter) and hands untouched PCM to Android's stock Media3 audio path. The
+  previous output mode is remembered and restored when switched off.
+- **Live spectrum visualizer** — log-spaced frequency bars in the Now-Playing view, tinted
+  by the album palette and driven by a PCM tap inside the app's own audio processor chain
+  (no RECORD_AUDIO permission required). Toggleable in Settings → Now playing.
+- **Liquid-glass Now Playing** — track info and progress bar float on a translucent
+  hairline-bordered glass slab, and a breathing aura glow blooms behind the album art
+  while music plays.
+
+### Changed
+- New bright "Sonic Aurora" launcher icon (violet → magenta → amber gradient, play glyph
+  over a rising waveform) across all densities, adaptive layers, monochrome/themed icon
+  and fastlane listing.
+- The Sound Engine signal-chain view now includes the Aura DSP stage (Pure / active / off).
+
 ## [0.3.0] - 2026-08-15
 
 ### Added

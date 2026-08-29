@@ -259,6 +259,8 @@ class PlayerViewModel @Inject constructor(
     private val dualPlayerEngine: DualPlayerEngine,
     private val appShortcutManager: AppShortcutManager,
     private val listeningStatsTracker: ListeningStatsTracker,
+    /** Shared audiophile DSP state; also feeds the Now-Playing spectrum visualizer. */
+    val audiophileDspState: com.lostf1sh.pixelplayeross.data.service.player.AudiophileDspState,
     private val dailyMixStateHolder: DailyMixStateHolder,
     private val lyricsStateHolder: LyricsStateHolder,
     private val queueStateHolder: QueueStateHolder,
@@ -451,6 +453,14 @@ class PlayerViewModel @Inject constructor(
         )
 
     val showPlayerFileInfo: StateFlow<Boolean> = userPreferencesRepository.showPlayerFileInfoFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    /** Whether the Now-Playing spectrum visualizer strip is enabled. */
+    val playerVisualizerEnabled: StateFlow<Boolean> = userPreferencesRepository.playerVisualizerEnabledFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

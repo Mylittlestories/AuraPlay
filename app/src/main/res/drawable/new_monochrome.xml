@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- AuraPlay adaptive-icon monochrome: aura ring + play (DRVsoft) -->
+<!-- AuraPlay adaptive-icon monochrome: play glyph riding a rising waveform (DRVsoft) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -8,16 +8,24 @@
     <group
         android:pivotX="12"
         android:pivotY="12"
-        android:scaleX="2.1"
-        android:scaleY="2.1">
+        android:scaleX="2.4"
+        android:scaleY="2.4">
+        <!-- play triangle -->
         <path
-            android:pathData="M4.75,6.5 A9.1,9.1 0 1 1 19.25,6.5"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="2.4"
-            android:strokeLineCap="round"
-            android:fillColor="#00000000" />
+            android:pathData="M3.4,7.8 L10.6,12 L3.4,16.2 Z"
+            android:fillColor="#FFFFFFFF" />
+        <!-- rising waveform bars -->
         <path
-            android:pathData="M10.4,8.7 L15.9,12 L10.4,15.3 Z"
+            android:pathData="M11.6,8.95 a0.7,0.7 0 0 1 1.4,0 v6.1 a0.7,0.7 0 0 1 -1.4,0 z"
+            android:fillColor="#FFFFFFFF" />
+        <path
+            android:pathData="M14.1,10.5 a0.7,0.7 0 0 1 1.4,0 v2.9 a0.7,0.7 0 0 1 -1.4,0 z"
+            android:fillColor="#FFFFFFFF" />
+        <path
+            android:pathData="M16.6,9.75 a0.7,0.7 0 0 1 1.4,0 v3.5 a0.7,0.7 0 0 1 -1.4,0 z"
+            android:fillColor="#FFFFFFFF" />
+        <path
+            android:pathData="M19.1,11.2 a0.7,0.7 0 0 1 1.4,0 v1.6 a0.7,0.7 0 0 1 -1.4,0 z"
             android:fillColor="#FFFFFFFF" />
     </group>
 </vector>

@@ -308,4 +308,35 @@
     <string name="sound_engine_mode_title">Output mode</string>
     <string name="sound_engine_open_eq">Open equalizer</string>
     <string name="drvsoft_footer">Engineered by DRVsoft · github.com/Mylittlestories/AuraPlay</string>
+
+    <!-- Sound Engine: audiophile DSP stage -->
+    <string name="sound_engine_stage_pure">PURE</string>
+    <string name="sound_engine_stage_dsp">AURA DSP</string>
+    <string name="sound_engine_stage_dsp_off">DSP OFF</string>
+    <string name="sound_engine_protection_title">Audiophile protection</string>
+    <string name="sound_engine_protection_subtitle">In-app preamp and true-peak limiter that keep boosted EQ and loud masters from clipping.</string>
+    <string name="sound_engine_preamp_value">Preamp %1$s%2$.1f dB</string>
+    <string name="sound_engine_preamp_reset">Reset</string>
+    <string name="sound_engine_preamp_hint">Negative values create headroom for EQ boosts; the limiter guards the ceiling.</string>
+    <string name="sound_engine_limiter_title">True-peak limiter</string>
+    <string name="sound_engine_limiter_subtitle">Brickwall ceiling at −1 dBFS with 2.5 ms lookahead — transparent overload protection.</string>
+    <string name="sound_engine_pure_title">Pure Direct</string>
+    <string name="sound_engine_pure_subtitle">Bypass every in-app processing stage and hand untouched PCM to Android\'s stock audio path. The previous output mode is restored when switched off.</string>
+    <string name="sound_engine_visualizer_title">Spectrum visualizer</string>
+    <string name="sound_engine_visualizer_subtitle">Live frequency bars in Now Playing, tinted by the album palette. Taps the post-DSP signal inside the app — no microphone permission needed.</string>
+
+    <!-- AutoEQ headphone correction -->
+    <string name="autoeq_title">Headphone correction</string>
+    <string name="autoeq_entry_subtitle">AutoEQ correction profiles for popular headphones &amp; earphones</string>
+    <string name="autoeq_subtitle">Pick your headphones to apply a correction curve tuned to a Harman-style target, plus matching preamp.</string>
+    <string name="autoeq_search_hint">Search your headphones…</string>
+    <string name="autoeq_form_over_ear">Over-ear</string>
+    <string name="autoeq_form_in_ear">In-ear</string>
+    <string name="autoeq_form_earbud">Earbud</string>
+    <string name="autoeq_preamp_value">preamp %1$.1f dB</string>
+    <string name="autoeq_disclaimer">Profiles approximate published AutoEq measurements; unit variance and fit mean your ears are the final judge. Fine-tune the bands and save the result as a custom preset.</string>
+
+    <!-- Settings: Now playing -->
+    <string name="setcat_player_visualizer_title">Spectrum visualizer</string>
+    <string name="setcat_player_visualizer_subtitle">Show live frequency bars in the player</string>
 </resources>

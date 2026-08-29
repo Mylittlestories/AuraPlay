@@ -219,6 +219,18 @@ object SettingsRegistry {
                 onToggle = { viewModel, checked -> viewModel.setShowPlayerFileInfo(checked) }
             ),
             SettingSpec(
+                id = "appearance_player_visualizer",
+                itemKey = "item_appearance_player_visualizer",
+                titleRes = R.string.setcat_player_visualizer_title,
+                subtitleRes = R.string.setcat_player_visualizer_subtitle,
+                category = SettingsCategory.APPEARANCE,
+                subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf("visualizer", "spectrum", "bars", "fft", "audio", "waveform"),
+                getValue = { it.playerVisualizerEnabled },
+                onToggle = { viewModel, checked -> viewModel.setPlayerVisualizerEnabled(checked) }
+            ),
+            SettingSpec(
                 id = "appearance_palette_style",
                 itemKey = "item_appearance_palette_style",
                 titleRes = R.string.setcat_album_art_palette_title,

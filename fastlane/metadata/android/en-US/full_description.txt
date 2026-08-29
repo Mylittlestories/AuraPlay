@@ -2,21 +2,27 @@ AuraPlay is an offline-first Android music player with a hi-fi sound engine, int
 
 Engineered by DRVsoft. Built on the open-source PixelPlayerOSS (GPL-3.0) — full credit and many thanks to @lostf1sh and its contributors.
 
-Sound engine:
-• USB DAC / audio interface routing for the cleanest signal path
-• Float PCM output mode, FFmpeg hi-res decoders
-• Equalizer with presets, crossfade and gapless playback
+Audiophile sound engine:
+• AutoEQ headphone correction: curated profiles for 35+ popular headphones and earphones (Sennheiser HD series, Beyerdynamic DT series, Sony WH/WF, Hifiman, AKG, Moondrop, AirPods, Galaxy Buds and more)
+• In-app preamp (−15…+12 dB) and brickwall true-peak limiter (−1 dBFS, 2.5 ms lookahead) — boosted EQ and loud masters can't clip
+• Pure Direct mode: bypass every in-app processing stage for an untouched PCM path
+• USB DAC / audio interface routing, float PCM output mode, hi-res sample-rate handling, FFmpeg decoders
+• Equalizer with presets, crossfade and gapless playback, ReplayGain support
 
 Playback intelligence:
 • AuraShuffle: weighted whole-library shuffle with discovery boost and artist spacing — never the same twice
 • Mood Radio: one tap builds a queue for your mood (chill, energy, happy, melancholy, discovery, favorites), fully offline
+
+Visuals:
+• Live spectrum visualizer in Now Playing, tinted by the album palette (no microphone permission — it taps the audio inside the app)
+• Liquid-glass Now Playing with a breathing aura glow behind the album art
+• Material 3 Expressive dynamic theming from album colors
 
 Library & more:
 • Albums, artists, genres, folders, favorites, playlists, instant search
 • Lyrics (offline .lrc and optional LRCLIB lookup)
 • Optional self-hosted sync: Navidrome/Subsonic, Jellyfin, ListenBrainz scrobbling
 • Encrypted backup/restore, home-screen widgets, listening stats
-• Material 3 dynamic theming, animated aura UI
 
 No ads, no tracking, no account required. Online features are optional and off by default.
 

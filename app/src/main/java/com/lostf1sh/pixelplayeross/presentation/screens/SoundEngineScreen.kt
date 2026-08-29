@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,7 +19,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Equalizer
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Speaker
@@ -27,11 +31,15 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -163,13 +171,26 @@ fun SoundEngineScreen(
             icon = Icons.Rounded.Memory,
             title = stringResource(R.string.sound_engine_signal_path)
         ) {
+            val dspActive = !uiState.pureDirectEnabled &&
+                (uiState.audiophileLimiterEnabled || uiState.audiophilePreampDb != 0f)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
             ) {
                 PathChip(stringResource(R.string.sound_engine_stage_source))
                 Arrow()
                 PathChip(stringResource(R.string.sound_engine_stage_decoder))
+                Arrow()
+                PathChip(
+                    text = when {
+                        uiState.pureDirectEnabled -> stringResource(R.string.sound_engine_stage_pure)
+                        dspActive -> stringResource(R.string.sound_engine_stage_dsp)
+                        else -> stringResource(R.string.sound_engine_stage_dsp_off)
+                    },
+                    highlight = dspActive || uiState.pureDirectEnabled
+                )
                 Arrow()
                 PathChip(
                     text = if (uiState.audioOutputMode.usesFloatOutput) {
@@ -261,6 +282,110 @@ fun SoundEngineScreen(
                 Switch(
                     checked = uiState.preferUsbDacEnabled,
                     onCheckedChange = { settingsViewModel.setPreferUsbDacEnabled(it) }
+                )
+            }
+        }
+
+        // ---------------- Audiophile protection ----------------
+        EngineCard(
+            icon = Icons.Rounded.Tune,
+            title = stringResource(R.string.sound_engine_protection_title)
+        ) {
+            Text(
+                text = stringResource(R.string.sound_engine_protection_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(6.dp))
+
+            var preampValue by remember(uiState.audiophilePreampDb) {
+                mutableStateOf(uiState.audiophilePreampDb)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(
+                        R.string.sound_engine_preamp_value,
+                        if (preampValue > 0) "+" else "", preampValue
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.width(8.dp))
+                TextButton(onClick = {
+                    preampValue = 0f
+                    settingsViewModel.setAudiophilePreampDb(0f)
+                }) {
+                    Text(stringResource(R.string.sound_engine_preamp_reset))
+                }
+            }
+            Slider(
+                value = preampValue,
+                onValueChange = { preampValue = (it * 2).toInt() / 2f },
+                onValueChangeFinished = {
+                    settingsViewModel.setAudiophilePreampDb(preampValue)
+                },
+                valueRange = -15f..12f,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                text = stringResource(R.string.sound_engine_preamp_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.sound_engine_limiter_title),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        stringResource(R.string.sound_engine_limiter_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = uiState.audiophileLimiterEnabled,
+                    onCheckedChange = { settingsViewModel.setAudiophileLimiterEnabled(it) }
+                )
+            }
+        }
+
+        // ---------------- Pure Direct ----------------
+        EngineCard(
+            icon = Icons.Rounded.Bolt,
+            title = stringResource(R.string.sound_engine_pure_title)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.sound_engine_pure_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = uiState.pureDirectEnabled,
+                    onCheckedChange = { settingsViewModel.setPureDirectEnabled(it) }
+                )
+            }
+        }
+
+        // ---------------- Visualizer ----------------
+        EngineCard(
+            icon = Icons.Rounded.Equalizer,
+            title = stringResource(R.string.sound_engine_visualizer_title)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.sound_engine_visualizer_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = uiState.playerVisualizerEnabled,
+                    onCheckedChange = { settingsViewModel.setPlayerVisualizerEnabled(it) }
                 )
             }
         }

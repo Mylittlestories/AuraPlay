@@ -1,0 +1,9 @@
+AuraPlay 2.3.0 — the audiophile update:
+
+* AutoEQ headphone correction: curated correction profiles for 35+ popular headphones and earphones (Sennheiser, Beyerdynamic, Sony, Hifiman, AKG, Moondrop, AirPods and more), applied to the 10-band EQ with matching preamp — fully offline.
+* Audiophile DSP stage: clean preamp (−15…+12 dB) and a brickwall true-peak limiter (−1 dBFS ceiling, 2.5 ms lookahead, 60 ms release) built into the playback chain, so EQ boosts and loud masters can no longer clip.
+* Pure Direct mode: bypass every in-app processing stage and hand untouched PCM to Android's stock audio path; your previous output mode is restored when you switch it off.
+* Live spectrum visualizer in Now Playing, tinted by the album palette. It taps the post-DSP signal inside the app — no microphone permission needed.
+* Liquid-glass Now Playing: the track info and progress float on a translucent glass slab, with a breathing aura glow behind the album art.
+* New bright "Sonic Aurora" app icon (violet → magenta → amber).
+* Signal-chain view in the Sound Engine now shows the Aura DSP stage.

@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -98,6 +100,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerPreset
+import com.lostf1sh.pixelplayeross.presentation.components.AutoEqSheet
 import com.lostf1sh.pixelplayeross.presentation.components.CollapsibleCommonTopBar
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveTopBarContent
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.EqualizerViewModel
@@ -165,7 +168,16 @@ fun EqualizerScreen(
     var showCustomPresetsSheet by remember { mutableStateOf(false) }
     var showReorderSheet by remember { mutableStateOf(false) }
     var showSaveDialog by remember { mutableStateOf(false) }
+    var showAutoEqSheet by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<EqualizerPreset?>(null) }
+
+    if (showAutoEqSheet) {
+        AutoEqSheet(
+            currentPresetName = uiState.currentPreset.name,
+            onProfileSelected = { equalizerViewModel.applyAutoEqProfile(it) },
+            onDismiss = { showAutoEqSheet = false }
+        )
+    }
     
     if (showSaveDialog) {
         SavePresetDialog(
@@ -297,6 +309,13 @@ fun EqualizerScreen(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            item(key = "autoeq_entry") {
+                AutoEqEntryCard(
+                    onClick = { showAutoEqSheet = true },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             item(key = "preset_tabs") {
                 val visiblePresets = remember(uiState.accessiblePresets) {
                     val defaultPresets = uiState.accessiblePresets.filter { !it.isCustom }
@@ -1790,4 +1809,53 @@ private fun HybridFrequencyResponseGraph(
             }
         }
      }
+}
+
+@Composable
+private fun AutoEqEntryCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.35f)
+        ),
+        modifier = modifier
+            .clip(MaterialTheme.shapes.large)
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.Rounded.Headphones,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(com.lostf1sh.pixelplayeross.R.string.autoeq_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(com.lostf1sh.pixelplayeross.R.string.autoeq_entry_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f)
+                )
+            }
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+    }
 }

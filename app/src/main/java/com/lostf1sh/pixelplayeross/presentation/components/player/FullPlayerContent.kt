@@ -75,6 +75,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
@@ -552,6 +555,28 @@ fun FullPlayerContent(
         )
     }
 
+    val visualizerEnabled by playerViewModel.playerVisualizerEnabled.collectAsStateWithLifecycle()
+    val visualizerSection: @Composable () -> Unit = {
+        androidx.compose.animation.AnimatedVisibility(
+            visible = visualizerEnabled,
+            enter = androidx.compose.animation.fadeIn(
+                androidx.compose.animation.core.tween(360)
+            ),
+            exit = androidx.compose.animation.fadeOut(
+                androidx.compose.animation.core.tween(220)
+            )
+        ) {
+            SpectrumVisualizerStrip(
+                dspState = playerViewModel.audiophileDspState,
+                isPlayingProvider = isPlayingProvider,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+            )
+        }
+    }
+
     val controlsSection: @Composable () -> Unit = {
         FullPlayerControlsSection(
             loadingTweaks = loadingTweaks,
@@ -818,6 +843,7 @@ fun FullPlayerContent(
                     albumCoverSection = albumCoverSection,
                     songMetadataSection = portraitSongMetadataSection,
                     playerProgressSection = playerProgressSection,
+                    visualizerSection = visualizerSection,
                     controlsSection = controlsSection
                 )
             }
@@ -928,6 +954,43 @@ private fun FullPlayerAlbumCoverSection(
             CarouselStyle.TWO_PEEK -> maxWidth * 0.6f
             else -> maxWidth * 0.8f
         }
+
+        // Aura glow: a soft radial bloom behind the artwork that brightens
+        // while music is playing — the visual heartbeat of the player.
+        val glowColor = MaterialTheme.colorScheme.primary
+        val glowBreathes = isPlayingProvider() || playWhenReadyProvider()
+        val glowAlpha by animateFloatAsState(
+            targetValue = if (glowBreathes) 1f else 0.55f,
+            animationSpec = tween(durationMillis = 640, easing = FastOutSlowInEasing),
+            label = "AuraGlowAlpha"
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(carouselHeight)
+                .graphicsLayer {
+                    alpha = glowAlpha
+                    scaleX = 0.92f * albumArtScale
+                    scaleY = 0.92f * albumArtScale
+                }
+                .drawBehind {
+                    val glowCenter = Offset(size.width / 2f, size.height * 0.44f)
+                    val glowRadius = size.minDimension * 0.66f
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                glowColor.copy(alpha = 0.34f),
+                                glowColor.copy(alpha = 0.12f),
+                                Color.Transparent
+                            ),
+                            center = glowCenter,
+                            radius = glowRadius
+                        ),
+                        radius = glowRadius,
+                        center = glowCenter
+                    )
+                }
+        )
 
         DelayedContent(
             shouldDelay = shouldDelay,
@@ -1261,6 +1324,7 @@ private fun FullPlayerPortraitContent(
     albumCoverSection: @Composable (Modifier) -> Unit,
     songMetadataSection: @Composable () -> Unit,
     playerProgressSection: @Composable () -> Unit,
+    visualizerSection: @Composable () -> Unit,
     controlsSection: @Composable () -> Unit
 ) {
     Column(
@@ -1276,14 +1340,30 @@ private fun FullPlayerPortraitContent(
     ) {
         albumCoverSection(Modifier)
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+        visualizerSection()
+
+        // Liquid-glass slab: a translucent, hairline-bordered card that floats
+        // the track metadata and progress bar over the album-tinted backdrop.
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.32f),
+            border = androidx.compose.foundation.BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f)
+            ),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Box(Modifier.align(Alignment.Start)) {
-                songMetadataSection()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Box(Modifier.align(Alignment.Start)) {
+                    songMetadataSection()
+                }
+                playerProgressSection()
             }
-            playerProgressSection()
         }
 
         controlsSection()

@@ -14,12 +14,15 @@ A modern, offline-first Android music player built with **Jetpack Compose**, **M
 | **Playback** | Media3/ExoPlayer engine, gapless playback, playback speed, sleep timer, FFmpeg & MIDI decoder extensions |
 | **Library** | Tracks, albums, artists, genres, folders — powered by a fast Room database with instant search |
 | **Playlists & more** | Playlists (with NLP quick-fill), favorites, playback history, engagement stats, Daily Mix |
-| **Audio** | Equalizer with presets, bass boost, virtualizer — all backed up with your settings |
+| **AuraShuffle** | Intelligent whole-library shuffle — discovery boost, recency damping, artist spacing; a fresh order every time |
+| **Mood Radio** | One-tap mood queues (chill, workout, focus…) built offline by the on-device NLP intent engine |
+| **Audiophile DSP** | AutoEQ headphone correction for 35+ popular models, clean preamp, brickwall true-peak limiter, USB DAC routing, hi-res float output — see the Sound Engine screen |
+| **Pure Direct** | One switch to bypass every in-app processing stage for an untouched PCM path |
+| **Visuals** | Live spectrum visualizer tinted by album palette, liquid-glass Now Playing, breathing aura glow, Material 3 Expressive |
 | **Lyrics** | LRCLIB lyrics lookup (optional, opt-in) |
 | **Online sync** *(off by default)* | Navidrome, Subsonic, Jellyfin, ListenBrainz scrobbling, MusicBrainz |
 | **Widgets** | Glance home-screen widgets, quick-settings tiles |
 | **Backup** | Full encrypted backup/restore of settings, playlists, stats and more |
-| **Design** | Material 3 Expressive, dynamic album-art theming, expressive sliders & animations |
 | **Android integration** | Media session, Android Auto-ready, headphone/Bluetooth controls |
 
 ## 📦 Get the APK

@@ -58,8 +58,10 @@ Description: |-
     (GPL-3.0) — credit to @lostf1sh and contributors.
 
     Features: USB DAC routing, float PCM output, FFmpeg hi-res decoders,
-    equalizer, AuraShuffle weighted whole-library shuffle, offline Mood
-    Radio, lyrics, Navidrome/Subsonic + Jellyfin sync (optional),
+    equalizer with AutoEQ headphone correction, in-app preamp and
+    true-peak limiter, Pure Direct mode, live spectrum visualizer,
+    AuraShuffle weighted whole-library shuffle, offline Mood Radio,
+    lyrics, Navidrome/Subsonic + Jellyfin sync (optional),
     encrypted backups, widgets, Material 3 dynamic theming.
 
     No ads, no tracking, no account required.
@@ -68,9 +70,9 @@ RepoType: git
 Repo: https://github.com/Mylittlestories/AuraPlay.git
 
 Builds:
-  - versionName: 2.2.0
-    versionCode: 8
-    commit: v2.2.0
+  - versionName: 2.3.0
+    versionCode: 9
+    commit: v2.3.0
     subdir: app
     gradle:
       - yes
@@ -78,8 +80,8 @@ Builds:
 
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags v.*
-CurrentVersion: 2.2.0
-CurrentVersionCode: 8
+CurrentVersion: 2.3.0
+CurrentVersionCode: 9
 ```
 
 ## Checklist (already done in this repo)

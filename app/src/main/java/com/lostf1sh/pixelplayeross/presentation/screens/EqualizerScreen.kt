@@ -111,7 +111,9 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.SurroundSound
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -1832,7 +1834,7 @@ private fun AutoEqEntryCard(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Icon(
-                imageVector = androidx.compose.material.icons.Icons.Rounded.Headphones,
+                imageVector = Icons.Rounded.Headphones,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.size(24.dp)
@@ -1852,7 +1854,7 @@ private fun AutoEqEntryCard(
                 )
             }
             Icon(
-                imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )

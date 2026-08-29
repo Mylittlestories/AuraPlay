@@ -49,6 +49,11 @@ class AudiophileAudioProcessor(
     }
 
     private var inputFormat: AudioFormat = AudioFormat.NOT_SET
+
+    /** Persistent, reusable output buffer (BaseAudioProcessor pattern). */
+    private var buffer: ByteBuffer = AudioProcessor.EMPTY_BUFFER
+
+    /** The buffer currently being handed out via [getOutput]. */
     private var outputBuffer: ByteBuffer = AudioProcessor.EMPTY_BUFFER
     private var inputEnded = false
 
@@ -120,18 +125,26 @@ class AudiophileAudioProcessor(
         if (passthrough && !dsp.tapActive) {
             // Nothing to do: bulk copy the bytes through.
             val size = inputBuffer.remaining()
-            outputBuffer = ensureOutputBuffer(size)
-            outputBuffer.put(inputBuffer)
-            outputBuffer.flip()
+            if (size > 0) {
+                val out = ensureOutputBuffer(size)
+                out.put(inputBuffer)
+                out.flip()
+            } else {
+                outputBuffer = AudioProcessor.EMPTY_BUFFER
+            }
             return
         }
 
         if (!formatSupported) {
             // Exotic layout: never touch the samples; the tap stays silent.
             val size = inputBuffer.remaining()
-            outputBuffer = ensureOutputBuffer(size)
-            outputBuffer.put(inputBuffer)
-            outputBuffer.flip()
+            if (size > 0) {
+                val out = ensureOutputBuffer(size)
+                out.put(inputBuffer)
+                out.flip()
+            } else {
+                outputBuffer = AudioProcessor.EMPTY_BUFFER
+            }
             inputBuffer.position(inputBuffer.limit())
             return
         }
@@ -313,15 +326,32 @@ class AudiophileAudioProcessor(
     private fun floatToShort(value: Float): Short =
         (value.coerceIn(-1f, 1f) * 32767f).toInt().toShort()
 
+    /**
+     * Mirrors [androidx.media3.common.audio.BaseAudioProcessor.replaceOutputBuffer]:
+     * keeps a private persistent buffer so [ByteBuffer.allocateDirect] runs only
+     * when capacity must grow, and never returns [AudioProcessor.EMPTY_BUFFER]
+     * for a non-empty request.
+     *
+     * A zero-capacity request returns [AudioProcessor.EMPTY_BUFFER] and the
+     * caller must not write into it. This matters because the
+     * [androidx.media3.common.audio.AudioProcessingPipeline] feeds processors
+     * with `EMPTY_BUFFER` once the input is exhausted
+     * (`getOutput()` → `processData(EMPTY_BUFFER)`), and
+     * `ByteBuffer.put` throws `IllegalArgumentException` when source and
+     * target are the same instance.
+     */
     private fun ensureOutputBuffer(requiredCapacity: Int): ByteBuffer {
-        return if (outputBuffer.capacity() < requiredCapacity) {
-            ByteBuffer.allocateDirect(requiredCapacity).order(NATIVE_ORDER).also {
-                outputBuffer = it
-            }
-        } else {
-            outputBuffer.clear()
-            outputBuffer
+        if (requiredCapacity <= 0) {
+            outputBuffer = AudioProcessor.EMPTY_BUFFER
+            return outputBuffer
         }
+        if (buffer.capacity() < requiredCapacity) {
+            buffer = ByteBuffer.allocateDirect(requiredCapacity).order(NATIVE_ORDER)
+        } else {
+            buffer.clear()
+        }
+        outputBuffer = buffer
+        return buffer
     }
 
     override fun getOutput(): ByteBuffer {

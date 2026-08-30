@@ -6,6 +6,7 @@ import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplaci
 import android.content.Intent
 import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,6 +58,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -656,11 +658,35 @@ fun YourMixHeader(
 
     val titleStyle = rememberYourMixTitleStyle()
 
+    // AuraPlay's home hero: the Today's-Mix header floats on a soft aurora
+    // glass card — the same violet → magenta → amber signature as the app
+    // icon and wordmark — instead of bare text over the background.
+    val auroraCardBrush = remember(colors.primary, colors.tertiary) {
+        com.lostf1sh.pixelplayeross.ui.theme.Aurora.tint(
+            primary = colors.primary,
+            tertiary = colors.tertiary
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(256.dp)
             .padding(16.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = MaterialTheme.shapes.large
+            )
+            .background(
+                brush = auroraCardBrush,
+                shape = MaterialTheme.shapes.large
+            )
+            .border(
+                width = 1.dp,
+                color = colors.onSurface.copy(alpha = 0.10f),
+                shape = MaterialTheme.shapes.large
+            )
     ) {
         Column(
             modifier = Modifier
@@ -669,8 +695,9 @@ fun YourMixHeader(
         ) {
             Text(
                 text = stringResource(R.string.home_your_mix_title),
-                style = titleStyle,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = titleStyle.copy(
+                    brush = com.lostf1sh.pixelplayeross.ui.theme.Aurora.brush()
+                ),
                 modifier = Modifier
             )
 

@@ -1714,6 +1714,44 @@ interface MusicDao {
     suspend fun updateSongAlbumArt(songId: Long, albumArtUri: String?)
 
     /**
+     * Applies a user-confirmed accurate-metadata match to the library row.
+     *
+     * Unlike [applyMusicBrainzMatch] (which only fills blank fields), this
+     * OVERWRITES the display fields with the canonical values the user
+     * explicitly confirmed in the accurate-metadata sheet. Fields the match
+     * does not know (year 0, null artwork) are left untouched, and the
+     * `*_user_edited` flags are set so the library resync preserves them.
+     */
+    @Query(
+        """
+        UPDATE songs
+        SET title = :title,
+            artist_name = :artist,
+            album_name = :album,
+            year = CASE WHEN :year > 0 THEN :year ELSE year END,
+            album_art_uri_string = COALESCE(:albumArtUri, album_art_uri_string),
+            mb_recording_id = COALESCE(:recordingId, mb_recording_id),
+            mb_release_id = COALESCE(:releaseId, mb_release_id),
+            mb_artist_id = COALESCE(:mbArtistId, mb_artist_id),
+            title_user_edited = 1,
+            artist_user_edited = 1,
+            album_user_edited = 1
+        WHERE id = :songId
+        """
+    )
+    suspend fun applyAccurateMetadata(
+        songId: Long,
+        title: String,
+        artist: String,
+        album: String,
+        year: Int,
+        albumArtUri: String?,
+        recordingId: String?,
+        releaseId: String?,
+        mbArtistId: String?
+    )
+
+    /**
      * Stores canonical MusicBrainz identifiers and fills only metadata that is currently absent.
      * Existing user/library names are deliberately preserved; choosing a match must not silently
      * regroup albums or artists in the local library.

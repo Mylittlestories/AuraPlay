@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ system splash (night): the Sonic Aurora icon on a deep brand violet. -->
+    <style name="Theme.AuraPlay" parent="Theme.Material3.DynamicColors.DayNight">
+        <item name="android:windowSplashScreenBackground">@color/aura_splash_background</item>
+    </style>
+
+    <style name="Theme.AuraPlay.ExternalPlayer" parent="Theme.Material3.DynamicColors.DayNight">
+        <item name="android:windowSplashScreenBackground">@color/aura_splash_background</item>
+    </style>
+</resources>

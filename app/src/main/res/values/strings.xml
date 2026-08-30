@@ -272,6 +272,26 @@
     <string name="musicbrainz_match_score">Match confidence: %1$d%%</string>
     <string name="musicbrainz_applied">MusicBrainz identifiers saved. Missing year and placeholder names were enriched.</string>
 
+    <string name="accurate_metadata_lookup">Verify track metadata</string>
+    <string name="accurate_metadata_title">Accurate metadata</string>
+    <string name="accurate_metadata_matching">Matching your track against MusicBrainz and Deezer…</string>
+    <string name="accurate_metadata_no_matches">No matching recording was found. Try correcting the title or artist first.</string>
+    <string name="accurate_metadata_failed">Could not verify this track</string>
+    <string name="accurate_metadata_apply_failed">Metadata could not be applied</string>
+    <string name="accurate_metadata_applied_library">Library corrected.</string>
+    <string name="accurate_metadata_applied_tags">Library corrected and file tags rewritten.</string>
+    <string name="accurate_metadata_apply_tags">Fix library + file tags</string>
+    <string name="accurate_metadata_apply_library">Fix library only</string>
+    <string name="accurate_metadata_other_matches">%1$d other matches</string>
+    <string name="accurate_metadata_confidence">%1$d%% match</string>
+    <string name="accurate_metadata_field_title">Title</string>
+    <string name="accurate_metadata_field_artist">Artist</string>
+    <string name="accurate_metadata_field_album">Album</string>
+    <string name="accurate_metadata_field_year">Year</string>
+    <string name="accurate_metadata_empty">(empty)</string>
+    <string name="accurate_metadata_already_accurate">This track\'s metadata already matches the canonical release.</string>
+    <string name="accurate_metadata_unknown_album">Unknown album</string>
+
 
     <!-- AuraPlay: Mood Radio & intelligent shuffle -->
     <string name="mood_radio_title">Mood Radio</string>

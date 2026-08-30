@@ -1,0 +1,8 @@
+AuraPlay 2.4.0 — accurate track metadata + a home screen of its own:
+
+* Verify track metadata: resolve the exact recording for any song against MusicBrainz and Deezer simultaneously, with a confidence-ranked match. Duration is the deciding signal — a candidate more than a few seconds off is a different cut (single edit, live version) and is demoted.
+* See exactly what would change: a clean before → after diff of title, artist, album and year, with a match-confidence badge and duration verification chip.
+* Two ways to apply: "Fix library only" corrects the unified library instantly (high-res 1000×1000 artwork included when found); "Fix library + file tags" rewrites the audio file's tags and embeds the artwork through the built-in tag editor.
+* Typo-tolerant matching that understands "(feat. …)", "2011 Remaster" and word order, and refuses to call two different songs the same track.
+* Home screen hero: Today's Mix now floats on a soft aurora glass card with the gradient title — the Sonic Aurora signature carried through the whole UI.
+* Branded launch: the Android 12+ splash is now deep brand violet behind the aurora icon.

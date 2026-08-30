@@ -20,4 +20,18 @@ interface DeezerApiService {
         @Query("q") query: String,
         @Query("limit") limit: Int = 1
     ): DeezerSearchResponse
+
+    /**
+     * Search for a track. Used by the accurate-metadata engine: Deezer track
+     * entries carry exact durations and 1000×1000 album artwork.
+     *
+     * The query uses Deezer's advanced syntax (`artist:"..." track:"..."`);
+     * callers should fall back to a plain free-text query when this returns
+     * no results.
+     */
+    @GET("search/track")
+    suspend fun searchTrack(
+        @Query("q") query: String,
+        @Query("limit") limit: Int = 10
+    ): DeezerTrackSearchResponse
 }

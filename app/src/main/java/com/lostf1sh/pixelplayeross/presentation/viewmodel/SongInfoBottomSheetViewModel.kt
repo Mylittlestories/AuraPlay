@@ -17,8 +17,7 @@ import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.toArtist
 import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.Song
-import com.lostf1sh.pixelplayeross.data.musicbrainz.MusicBrainzMatch
-import com.lostf1sh.pixelplayeross.data.musicbrainz.MusicBrainzRepository
+import com.lostf1sh.pixelplayeross.data.metadata.TrackMatch
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.data.offline.OfflineDownload
 import com.lostf1sh.pixelplayeross.utils.AudioMeta
@@ -44,7 +43,8 @@ import kotlinx.collections.immutable.toImmutableList
 class SongInfoBottomSheetViewModel @Inject constructor(
     private val musicDao: MusicDao,
     private val cloudOfflineRepository: CloudOfflineRepository,
-    private val musicBrainzRepository: MusicBrainzRepository,
+    private val trackMetadataEngine: com.lostf1sh.pixelplayeross.data.metadata.TrackMetadataEngine,
+    private val songMetadataEditor: com.lostf1sh.pixelplayeross.data.media.SongMetadataEditor,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
@@ -66,29 +66,40 @@ class SongInfoBottomSheetViewModel @Inject constructor(
         data class Error(val message: String) : ToneActionResult
     }
 
-    sealed interface MusicBrainzUiState {
-        data object Idle : MusicBrainzUiState
-        data object Loading : MusicBrainzUiState
-        data class Results(val matches: List<MusicBrainzMatch>) : MusicBrainzUiState
-        data class Error(val message: String) : MusicBrainzUiState
-        data object Applied : MusicBrainzUiState
+    /**
+     * State of the accurate-metadata flow: resolve candidates from
+     * MusicBrainz + Deezer, show a confidence-ranked diff, apply to the
+     * library (and optionally the file tags + artwork).
+     */
+    sealed interface AccurateMetadataUiState {
+        data object Idle : AccurateMetadataUiState
+        data object Loading : AccurateMetadataUiState
+        data class Results(
+            val matches: ImmutableList<TrackMatch>,
+            val canWriteTags: Boolean
+        ) : AccurateMetadataUiState
+
+        data class Applied(val message: String) : AccurateMetadataUiState
+        data class Error(val message: String) : AccurateMetadataUiState
     }
 
     private val _audioMeta = MutableStateFlow<AudioMeta?>(null)
     private val _resolvedArtists = MutableStateFlow<ImmutableList<Artist>>(persistentListOf())
     private val _offlineDownload = MutableStateFlow<OfflineDownload?>(null)
-    private val _musicBrainzState = MutableStateFlow<MusicBrainzUiState>(MusicBrainzUiState.Idle)
+    private val _accurateMetadataState =
+        MutableStateFlow<AccurateMetadataUiState>(AccurateMetadataUiState.Idle)
     private var offlineObservationJob: Job? = null
     val resolvedArtists: StateFlow<ImmutableList<Artist>> = _resolvedArtists.asStateFlow()
 
     val audioMeta: StateFlow<AudioMeta?> = _audioMeta.asStateFlow()
     val offlineDownload: StateFlow<OfflineDownload?> = _offlineDownload.asStateFlow()
-    val musicBrainzState: StateFlow<MusicBrainzUiState> = _musicBrainzState.asStateFlow()
+    val accurateMetadataState: StateFlow<AccurateMetadataUiState> =
+        _accurateMetadataState.asStateFlow()
 
     fun bindSong(song: Song) {
         offlineObservationJob?.cancel()
         _offlineDownload.value = null
-        _musicBrainzState.value = MusicBrainzUiState.Idle
+        _accurateMetadataState.value = AccurateMetadataUiState.Idle
         if (!CloudOfflineRepository.isCloudSong(song)) return
         offlineObservationJob = viewModelScope.launch {
             cloudOfflineRepository.observe(song).collect { download ->
@@ -112,42 +123,127 @@ class SongInfoBottomSheetViewModel @Inject constructor(
         viewModelScope.launch { cloudOfflineRepository.enqueue(song) }
     }
 
-    fun searchMusicBrainz(song: Song) {
-        if (_musicBrainzState.value is MusicBrainzUiState.Loading) return
+    // ------------------------------------------------- Accurate metadata
+
+    /** Whether the file's tags can be rewritten (local files only). */
+    fun canWriteTags(song: Song): Boolean =
+        !CloudOfflineRepository.isCloudSong(song) && song.path.isNotBlank()
+
+    /** Resolves confidence-ranked metadata candidates for [song]. */
+    fun fetchAccurateMetadata(song: Song) {
+        if (_accurateMetadataState.value is AccurateMetadataUiState.Loading) return
         viewModelScope.launch {
-            _musicBrainzState.value = MusicBrainzUiState.Loading
-            _musicBrainzState.value = runCatching { musicBrainzRepository.search(song) }
+            _accurateMetadataState.value = AccurateMetadataUiState.Loading
+            _accurateMetadataState.value = runCatching { trackMetadataEngine.resolve(song) }
                 .fold(
-                    onSuccess = { MusicBrainzUiState.Results(it) },
+                    onSuccess = { matches ->
+                        if (matches.isEmpty()) {
+                            AccurateMetadataUiState.Error(
+                                appContext.getString(R.string.accurate_metadata_no_matches)
+                            )
+                        } else {
+                            AccurateMetadataUiState.Results(
+                                matches = matches.toImmutableList(),
+                                canWriteTags = canWriteTags(song)
+                            )
+                        }
+                    },
                     onFailure = {
-                        MusicBrainzUiState.Error(
+                        AccurateMetadataUiState.Error(
                             it.localizedMessage
-                                ?: appContext.getString(R.string.musicbrainz_search_failed_fallback)
+                                ?: appContext.getString(R.string.accurate_metadata_failed)
                         )
                     }
                 )
         }
     }
 
-    fun applyMusicBrainzMatch(song: Song, match: MusicBrainzMatch) {
+    /**
+     * Applies [match]. Library mode corrects the unified library row; tag mode
+     * additionally rewrites the audio file's tags and embeds the high-res
+     * artwork via the existing tag editor pipeline.
+     */
+    fun applyAccurateMetadata(song: Song, match: TrackMatch, writeToTags: Boolean) {
+        if (_accurateMetadataState.value is AccurateMetadataUiState.Loading) return
         viewModelScope.launch {
-            _musicBrainzState.value = MusicBrainzUiState.Loading
-            _musicBrainzState.value = runCatching {
-                musicBrainzRepository.apply(song, match)
+            _accurateMetadataState.value = AccurateMetadataUiState.Loading
+            _accurateMetadataState.value = runCatching {
+                applyAccurateMetadataInternal(song, match, writeToTags)
             }.fold(
-                onSuccess = { MusicBrainzUiState.Applied },
+                onSuccess = { message -> AccurateMetadataUiState.Applied(message) },
                 onFailure = {
-                    MusicBrainzUiState.Error(
+                    AccurateMetadataUiState.Error(
                         it.localizedMessage
-                            ?: appContext.getString(R.string.musicbrainz_save_failed_fallback)
+                            ?: appContext.getString(R.string.accurate_metadata_apply_failed)
                     )
                 }
             )
         }
     }
 
-    fun dismissMusicBrainz() {
-        _musicBrainzState.value = MusicBrainzUiState.Idle
+    private suspend fun applyAccurateMetadataInternal(
+        song: Song,
+        match: TrackMatch,
+        writeToTags: Boolean
+    ): String = withContext(Dispatchers.IO) {
+        val songId = song.id.toLongOrNull()
+            ?: musicDao.getSongIdByContentUri(song.contentUriString)
+            ?: error("Song is not present in the unified library")
+
+        if (writeToTags && canWriteTags(song)) {
+            val current = musicDao.getSongByIdOnce(songId)
+            val artwork = match.albumArtUrl?.let { trackMetadataEngine.downloadArtwork(it) }
+            val editResult = songMetadataEditor.editSongMetadata(
+                songId = songId,
+                newTitle = match.title,
+                newArtist = match.artist,
+                newAlbum = match.album,
+                newAlbumArtist = current?.albumArtist,
+                newGenre = current?.genre.orEmpty(),
+                newLyrics = current?.lyrics.orEmpty(),
+                newTrackNumber = current?.trackNumber ?: 0,
+                newDiscNumber = current?.discNumber,
+                coverArtUpdate = artwork?.let {
+                    com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate(
+                        bytes = it.bytes,
+                        mimeType = it.mimeType
+                    )
+                }
+            )
+            if (!editResult.success) {
+                error(editResult.errorMessage ?: "Tag write failed")
+            }
+            // Canonical IDs + year live only in the library row.
+            musicDao.applyAccurateMetadata(
+                songId = songId,
+                title = match.title,
+                artist = match.artist,
+                album = match.album,
+                year = match.year,
+                albumArtUri = null,
+                recordingId = match.mbRecordingId,
+                releaseId = match.mbReleaseId,
+                mbArtistId = match.mbArtistId
+            )
+            appContext.getString(R.string.accurate_metadata_applied_tags)
+        } else {
+            musicDao.applyAccurateMetadata(
+                songId = songId,
+                title = match.title,
+                artist = match.artist,
+                album = match.album,
+                year = match.year,
+                albumArtUri = match.albumArtUrl,
+                recordingId = match.mbRecordingId,
+                releaseId = match.mbReleaseId,
+                mbArtistId = match.mbArtistId
+            )
+            appContext.getString(R.string.accurate_metadata_applied_library)
+        }
+    }
+
+    fun dismissAccurateMetadata() {
+        _accurateMetadataState.value = AccurateMetadataUiState.Idle
     }
 
     fun loadArtistsForSong(song: Song) {

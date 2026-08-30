@@ -137,7 +137,7 @@ fun SongInfoBottomSheet(
     val audioMeta by songInfoViewModel.audioMeta.collectAsStateWithLifecycle()
     val resolvedArtists by songInfoViewModel.resolvedArtists.collectAsStateWithLifecycle()
     val offlineDownload by songInfoViewModel.offlineDownload.collectAsStateWithLifecycle()
-    val musicBrainzState by songInfoViewModel.musicBrainzState.collectAsStateWithLifecycle()
+    val accurateMetadataState by songInfoViewModel.accurateMetadataState.collectAsStateWithLifecycle()
     val isCloudSong = remember(song.contentUriString) { CloudOfflineRepository.isCloudSong(song) }
     val ringtonePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -294,14 +294,11 @@ fun SongInfoBottomSheet(
         songInfoViewModel.loadArtistsForSong(song)
     }
 
-    LaunchedEffect(musicBrainzState) {
-        if (musicBrainzState is SongInfoBottomSheetViewModel.MusicBrainzUiState.Applied) {
-            Toast.makeText(
-                context,
-                context.getString(R.string.musicbrainz_applied),
-                Toast.LENGTH_LONG
-            ).show()
-            songInfoViewModel.dismissMusicBrainz()
+    LaunchedEffect(accurateMetadataState) {
+        if (accurateMetadataState is SongInfoBottomSheetViewModel.AccurateMetadataUiState.Applied) {
+            val message = (accurateMetadataState as SongInfoBottomSheetViewModel.AccurateMetadataUiState.Applied).message
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            songInfoViewModel.dismissAccurateMetadata()
         }
     }
 
@@ -671,14 +668,14 @@ fun SongInfoBottomSheet(
                                                     .fillMaxWidth()
                                                     .heightIn(min = 66.dp),
                                                 shape = CircleShape,
-                                                onClick = { songInfoViewModel.searchMusicBrainz(song) }
+                                                onClick = { songInfoViewModel.fetchAccurateMetadata(song) }
                                             ) {
                                                 Icon(
                                                     Icons.Rounded.TravelExplore,
-                                                    contentDescription = stringResource(R.string.musicbrainz_lookup)
+                                                    contentDescription = stringResource(R.string.accurate_metadata_lookup)
                                                 )
                                                 Spacer(Modifier.width(10.dp))
-                                                Text(stringResource(R.string.musicbrainz_lookup))
+                                                Text(stringResource(R.string.accurate_metadata_lookup))
                                             }
                                         }
 
@@ -872,96 +869,14 @@ fun SongInfoBottomSheet(
         },
     )
 
-    when (val state = musicBrainzState) {
-        SongInfoBottomSheetViewModel.MusicBrainzUiState.Idle,
-        SongInfoBottomSheetViewModel.MusicBrainzUiState.Applied -> Unit
-
-        SongInfoBottomSheetViewModel.MusicBrainzUiState.Loading -> {
-            AlertDialog(
-                onDismissRequest = {},
-                confirmButton = {},
-                title = { Text(stringResource(R.string.musicbrainz_lookup)) },
-                text = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(28.dp))
-                        Text(stringResource(R.string.musicbrainz_searching))
-                    }
-                }
-            )
-        }
-
-        is SongInfoBottomSheetViewModel.MusicBrainzUiState.Error -> {
-            AlertDialog(
-                onDismissRequest = songInfoViewModel::dismissMusicBrainz,
-                confirmButton = {
-                    TextButton(onClick = { songInfoViewModel.searchMusicBrainz(song) }) {
-                        Text(stringResource(R.string.cloud_download_retry))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = songInfoViewModel::dismissMusicBrainz) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
-                title = { Text(stringResource(R.string.musicbrainz_lookup_failed)) },
-                text = { Text(state.message) }
-            )
-        }
-
-        is SongInfoBottomSheetViewModel.MusicBrainzUiState.Results -> {
-            AlertDialog(
-                onDismissRequest = songInfoViewModel::dismissMusicBrainz,
-                confirmButton = {
-                    TextButton(onClick = songInfoViewModel::dismissMusicBrainz) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
-                title = { Text(stringResource(R.string.musicbrainz_choose_match)) },
-                text = {
-                    if (state.matches.isEmpty()) {
-                        Text(stringResource(R.string.musicbrainz_no_results))
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.heightIn(max = 420.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(state.matches, key = { it.recordingId + (it.releaseId ?: "") }) { match ->
-                                Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            songInfoViewModel.applyMusicBrainzMatch(song, match)
-                                        },
-                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Column(Modifier.padding(14.dp)) {
-                                        Text(match.title, fontWeight = FontWeight.Bold)
-                                        Text(
-                                            listOfNotNull(
-                                                match.artist.takeIf { it.isNotBlank() },
-                                                match.album.takeIf { it.isNotBlank() },
-                                                match.year.takeIf { it > 0 }?.toString()
-                                            ).joinToString(" · "),
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                        Text(
-                                            stringResource(R.string.musicbrainz_match_score, match.score),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            )
-        }
-    }
+    AccurateMetadataDialog(
+        song = song,
+        state = accurateMetadataState,
+        onApply = { match, writeToTags ->
+            songInfoViewModel.applyAccurateMetadata(song, match, writeToTags)
+        },
+        onDismiss = songInfoViewModel::dismissAccurateMetadata
+    )
 
     val artistPickerSheetState = rememberModalSheetState(skipPartiallyExpanded = true)
     if (showArtistPicker && resolvedArtists.isNotEmpty()) {

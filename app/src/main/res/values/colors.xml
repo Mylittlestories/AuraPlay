@@ -5,7 +5,7 @@
 
     <color name="pixel_play_purple_dark">#19191B</color>
     <color name="light_background">#EDEDED</color>
-</resources>
 
     <!-- Deep brand violet for the Android 12+ system splash background. -->
     <color name="aura_splash_background">#FF46289C</color>
+</resources>

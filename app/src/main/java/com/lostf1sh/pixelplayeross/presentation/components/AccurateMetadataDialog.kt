@@ -258,7 +258,7 @@ private fun BestMatchCard(match: TrackMatch) {
                 model = match.albumArtUrl,
                 contentDescription = null,
                 shape = RoundedCornerShape(14.dp),
-                targetSize = coil.size.Size(300f, 300f),
+                targetSize = coil.size.Size(300, 300),
                 modifier = Modifier.size(76.dp)
             )
             Spacer(Modifier.width(14.dp))

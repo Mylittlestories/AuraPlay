@@ -136,15 +136,20 @@ class SongInfoBottomSheetViewModel @Inject constructor(
             _accurateMetadataState.value = AccurateMetadataUiState.Loading
             _accurateMetadataState.value = runCatching { trackMetadataEngine.resolve(song) }
                 .fold(
-                    onSuccess = { matches ->
-                        if (matches.isEmpty()) {
-                            AccurateMetadataUiState.Error(
+                    onSuccess = { outcome ->
+                        when {
+                            outcome.matches.isNotEmpty() -> AccurateMetadataUiState.Results(
+                                matches = outcome.matches.toImmutableList(),
+                                canWriteTags = canWriteTags(song)
+                            )
+                            // All reachable sources answered but found nothing.
+                            outcome.failedSources.isEmpty() -> AccurateMetadataUiState.Error(
                                 appContext.getString(R.string.accurate_metadata_no_matches)
                             )
-                        } else {
-                            AccurateMetadataUiState.Results(
-                                matches = matches.toImmutableList(),
-                                canWriteTags = canWriteTags(song)
+                            // The services could not be reached at all — a
+                            // network problem, not a "no match" answer.
+                            else -> AccurateMetadataUiState.Error(
+                                appContext.getString(R.string.accurate_metadata_unreachable)
                             )
                         }
                     },

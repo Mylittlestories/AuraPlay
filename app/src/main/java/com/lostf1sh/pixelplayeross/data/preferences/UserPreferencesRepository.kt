@@ -690,7 +690,7 @@ constructor(
 
     val externalLyricsEnabledFlow: Flow<Boolean> =
             dataStore.data.map { preferences ->
-                preferences[PreferencesKeys.EXTERNAL_LYRICS_ENABLED] ?: false
+                preferences[PreferencesKeys.EXTERNAL_LYRICS_ENABLED] ?: true
             }.distinctUntilChanged()
 
     suspend fun setExternalLyricsEnabled(enabled: Boolean) {

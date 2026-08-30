@@ -1,0 +1,7 @@
+AuraPlay 2.4.1 — fixes for lyrics & metadata lookup:
+
+* Fixed online lyrics: the LRCLIB search is now enabled by default (previously an off-by-default toggle silently disabled all lyric fetching). You can still turn it off in Settings → Library.
+* Metadata verification now queries three independent sources — MusicBrainz, Deezer and the iTunes Search API — in parallel, so a single unavailable service no longer blocks results. iTunes also brings genre and high-res artwork to the matches.
+* Honest failure reporting: when the metadata services cannot be reached, the app now says so instead of the misleading "no match found".
+* MusicBrainz rate-limit hiccups are retried automatically; parsing was moved to a reflection-free path so release-build shrinking can never break it.
+* Bonus accuracy: candidates now carry year and duration data merged across all sources.

@@ -275,6 +275,7 @@
     <string name="accurate_metadata_lookup">Verify track metadata</string>
     <string name="accurate_metadata_title">Accurate metadata</string>
     <string name="accurate_metadata_matching">Matching your track against MusicBrainz and Deezer…</string>
+    <string name="accurate_metadata_unreachable">Couldn\'t reach the metadata services. Check your internet connection and try again.</string>
     <string name="accurate_metadata_no_matches">No matching recording was found. Try correcting the title or artist first.</string>
     <string name="accurate_metadata_failed">Could not verify this track</string>
     <string name="accurate_metadata_apply_failed">Metadata could not be applied</string>

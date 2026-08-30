@@ -289,6 +289,7 @@
     <string name="accurate_metadata_field_album">Album</string>
     <string name="accurate_metadata_field_year">Year</string>
     <string name="accurate_metadata_empty">(empty)</string>
+    <string name="accurate_metadata_changes">What will change</string>
     <string name="accurate_metadata_already_accurate">This track\'s metadata already matches the canonical release.</string>
     <string name="accurate_metadata_unknown_album">Unknown album</string>
 

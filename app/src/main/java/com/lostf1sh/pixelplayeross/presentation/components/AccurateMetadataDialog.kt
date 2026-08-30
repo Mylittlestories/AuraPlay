@@ -63,8 +63,8 @@ fun AccurateMetadataDialog(
     onDismiss: () -> Unit
 ) {
     when (state) {
-        AccurateMetadataUiState.Idle,
-        AccurateMetadataUiState.Applied -> Unit
+        AccurateMetadataUiState.Idle -> Unit
+        is AccurateMetadataUiState.Applied -> Unit
 
         AccurateMetadataUiState.Loading -> Dialog(onDismissRequest = onDismiss) {
             Surface(
@@ -258,7 +258,7 @@ private fun BestMatchCard(match: TrackMatch) {
                 model = match.albumArtUrl,
                 contentDescription = null,
                 shape = RoundedCornerShape(14.dp),
-                targetSize = androidx.compose.ui.geometry.Size(300, 300),
+                targetSize = coil.size.Size(300f, 300f),
                 modifier = Modifier.size(76.dp)
             )
             Spacer(Modifier.width(14.dp))

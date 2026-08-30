@@ -166,7 +166,7 @@ class TrackMetadataEngine @Inject constructor(
             .orEmpty()
     }
 
-    private fun sanitize(value: String): String = value.replace("\"", ' ').trim()
+    private fun sanitize(value: String): String = value.replace("\"", " ").trim()
 
     private fun com.lostf1sh.pixelplayeross.data.musicbrainz.MusicBrainzMatch.toExpected() =
         ExpectedTrack(

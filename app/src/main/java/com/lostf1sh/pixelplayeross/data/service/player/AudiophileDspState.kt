@@ -40,6 +40,10 @@ class AudiophileDspState @Inject constructor() {
     @Volatile
     var pureDirect: Boolean = false
 
+    /** When true, every channel is downmixed to mono and duplicated to all outputs. */
+    @Volatile
+    var monoEnabled: Boolean = false
+
     /** Set by the UI while a visualizer is on screen so the tap keeps running. */
     @Volatile
     var tapActive: Boolean = false

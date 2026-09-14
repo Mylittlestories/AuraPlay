@@ -6,6 +6,9 @@ import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplaci
 import android.content.Intent
 import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -327,6 +330,16 @@ fun HomeScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                item(key = "quick_access", contentType = "quick_access") {
+                    QuickAccessRow(
+                        onShuffleAll = { playerViewModel.shuffleAllSongs() },
+                        onDailyMix = { navController.navigateSafely(Screen.DailyMixScreen.route) },
+                        onRecent = { navController.navigateSafely(Screen.RecentlyPlayed.route) },
+                        onStats = { navController.navigateSafely(Screen.Stats.route) },
+                        onDjSpace = { navController.navigateSafely(Screen.DJSpace.route) }
+                    )
+                }
+
                 if (yourMixSongs.isEmpty()) {
                     item(
                         key = "your_mix_placeholder",
@@ -858,5 +871,115 @@ private fun rememberYourMixTitleStyle(): TextStyle {
             fontSize = 64.sp,
             lineHeight = 62.sp
         )
+    }
+}
+
+
+/**
+ * Modern quick-access strip at the top of Home: one-tap destinations for the
+ * actions people open a player for. "Shuffle everything" carries the aurora
+ * tint as the hero action.
+ */
+@Composable
+private fun QuickAccessRow(
+    onShuffleAll: () -> Unit,
+    onDailyMix: () -> Unit,
+    onRecent: () -> Unit,
+    onStats: () -> Unit,
+    onDjSpace: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        val primary = MaterialTheme.colorScheme.primary
+        val onPrimary = MaterialTheme.colorScheme.onPrimary
+        val chipShape = RoundedCornerShape(50)
+        val auroraBrush = com.lostf1sh.pixelplayeross.ui.theme.Aurora.tint(
+            primary = primary,
+            tertiary = MaterialTheme.colorScheme.tertiary
+        )
+
+        // Hero action: shuffle the whole library, aurora-tinted.
+        Surface(
+            onClick = onShuffleAll,
+            shape = chipShape,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            modifier = Modifier.background(brush = auroraBrush, shape = chipShape)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 11.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.rounded_shuffle_24),
+                    contentDescription = null,
+                    tint = onPrimary,
+                    modifier = Modifier.size(19.dp)
+                )
+                Spacer(Modifier.width(7.dp))
+                Text(
+                    text = stringResource(R.string.quick_access_shuffle_all),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = onPrimary
+                )
+            }
+        }
+
+        QuickAccessChip(
+            label = stringResource(R.string.quick_access_daily_mix),
+            iconRes = R.drawable.rounded_instant_mix_24,
+            onClick = onDailyMix
+        )
+        QuickAccessChip(
+            label = stringResource(R.string.quick_access_recent),
+            iconRes = R.drawable.rounded_schedule_24,
+            onClick = onRecent
+        )
+        QuickAccessChip(
+            label = stringResource(R.string.quick_access_stats),
+            iconRes = R.drawable.rounded_monitoring_24,
+            onClick = onStats
+        )
+        QuickAccessChip(
+            label = stringResource(R.string.quick_access_dj),
+            iconRes = R.drawable.rounded_celebration_24,
+            onClick = onDjSpace
+        )
+    }
+}
+
+@Composable
+private fun QuickAccessChip(
+    label: String,
+    @DrawableRes iconRes: Int,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(19.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.width(7.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }

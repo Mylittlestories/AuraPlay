@@ -344,6 +344,15 @@
     <string name="sound_engine_limiter_subtitle">Brickwall ceiling at −1 dBFS with 2.5 ms lookahead — transparent overload protection.</string>
     <string name="sound_engine_pure_title">Pure Direct</string>
     <string name="sound_engine_pure_subtitle">Bypass every in-app processing stage and hand untouched PCM to Android\'s stock audio path. The previous output mode is restored when switched off.</string>
+    <string name="quick_access_shuffle_all">Shuffle all</string>
+    <string name="quick_access_daily_mix">Daily Mix</string>
+    <string name="quick_access_recent">Recent</string>
+    <string name="quick_access_stats">Stats</string>
+    <string name="quick_access_dj">DJ Space</string>
+    <string name="drawer_section_listen">Listen</string>
+    <string name="drawer_section_system">System</string>
+    <string name="sound_engine_mono_title">Mono audio</string>
+    <string name="sound_engine_mono_subtitle">Downmix every channel to mono and play it on all outputs — nothing is lost when listening on a single earbud.</string>
     <string name="sound_engine_visualizer_title">Spectrum visualizer</string>
     <string name="sound_engine_visualizer_subtitle">Live frequency bars in Now Playing, tinted by the album palette. Taps the post-DSP signal inside the app — no microphone permission needed.</string>
 

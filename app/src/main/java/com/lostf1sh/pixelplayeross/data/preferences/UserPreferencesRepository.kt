@@ -158,6 +158,7 @@ constructor(
             androidx.datastore.preferences.core.floatPreferencesKey("audiophile_preamp_db")
         val AUDIOPHILE_LIMITER_ENABLED =
             booleanPreferencesKey("audiophile_limiter_enabled")
+        val AUDIOPHILE_MONO_ENABLED = booleanPreferencesKey("audiophile_mono_enabled")
         val PURE_DIRECT_ENABLED =
             booleanPreferencesKey("pure_direct_enabled")
         val PURE_DIRECT_PREVIOUS_OUTPUT_MODE =
@@ -428,6 +429,18 @@ constructor(
     suspend fun setAudiophilePreampDb(db: Float) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AUDIOPHILE_PREAMP_DB] = db.coerceIn(-15f, 12f)
+        }
+    }
+
+    /** Whether playback is downmixed to mono (single-earbud listening). */
+    val audiophileMonoEnabledFlow: Flow<Boolean> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.AUDIOPHILE_MONO_ENABLED] ?: false
+        }
+
+    suspend fun setAudiophileMonoEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AUDIOPHILE_MONO_ENABLED] = enabled
         }
     }
 

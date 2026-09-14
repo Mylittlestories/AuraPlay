@@ -1,0 +1,7 @@
+v2.5.0 — The Modern Update
+
+• Mono audio: Sound Engine now includes a mono downmix toggle — perfect for a single earbud or speaker. Applies across the full DSP chain, but Pure Direct always stays bit-perfect.
+• Modernized navigation drawer: aurora-gradient AuraPlay wordmark, version chip with DRVsoft signature, section labels and pill-shaped items.
+• Home screen quick access: aurora hero Shuffle All button plus Daily Mix, Recently Played, Stats and DJ Space chips — one tap to your music.
+• New GitHub presence: refreshed README with feature highlights and a new aurora banner.
+• Internal: unit tests for the mono downmix processor (Media3 pipeline verified on JVM).

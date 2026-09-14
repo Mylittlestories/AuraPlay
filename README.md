@@ -1,6 +1,8 @@
+![AuraPlay](docs/banner.png)
+
 # AuraPlay 🎵
 
-A modern, offline-first Android music player built with **Jetpack Compose**, **Media3 (ExoPlayer)** and **Material 3**.
+**The open-source audiophile music player for Android.** Built with **Jetpack Compose**, **Media3 (ExoPlayer)** and **Material 3** — a DSP-grade listening experience with a design language of its own.
 
 > **Identity:** `com.auraplay.player` · **Min Android:** 11 (API 30) · **License:** GPL-3.0
 > **Crafted by [DRVsoft](https://github.com/Mylittlestories)** — this is the official AuraPlay repository.
@@ -16,9 +18,10 @@ A modern, offline-first Android music player built with **Jetpack Compose**, **M
 | **Playlists & more** | Playlists (with NLP quick-fill), favorites, playback history, engagement stats, Daily Mix |
 | **AuraShuffle** | Intelligent whole-library shuffle — discovery boost, recency damping, artist spacing; a fresh order every time |
 | **Mood Radio** | One-tap mood queues (chill, workout, focus…) built offline by the on-device NLP intent engine |
-| **Audiophile DSP** | AutoEQ headphone correction for 35+ popular models, clean preamp, brickwall true-peak limiter, USB DAC routing, hi-res float output — see the Sound Engine screen |
+| **Audiophile DSP** | AutoEQ headphone correction for 35+ popular models, clean preamp, brickwall true-peak limiter, ReplayGain loudness normalization, mono downmix for single-earbud listening, USB DAC routing, hi-res float output — see the Sound Engine screen |
+| **TrueTrack metadata** | Verify any track against MusicBrainz, Deezer and iTunes simultaneously — duration-verified, confidence-ranked corrections with 1000×1000 artwork, applied to the library or straight into the file tags |
 | **Pure Direct** | One switch to bypass every in-app processing stage for an untouched PCM path |
-| **Visuals** | Live spectrum visualizer tinted by album palette, liquid-glass Now Playing, breathing aura glow, Material 3 Expressive |
+| **Visuals** | Live spectrum visualizer tinted by album palette, liquid-glass Now Playing, breathing aura glow, aurora quick-access strip, Material 3 Expressive |
 | **Lyrics** | LRCLIB lyrics lookup (optional, opt-in) |
 | **Online sync** *(off by default)* | Navidrome, Subsonic, Jellyfin, ListenBrainz scrobbling, MusicBrainz |
 | **Widgets** | Glance home-screen widgets, quick-settings tiles |

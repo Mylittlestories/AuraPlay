@@ -80,6 +80,7 @@ data class SettingsUiState(
     val audiophilePreampDb: Float = 0f,
     val audiophileLimiterEnabled: Boolean = false,
     val pureDirectEnabled: Boolean = false,
+    val audiophileMonoEnabled: Boolean = false,
     val playerVisualizerEnabled: Boolean = true,
     val folderBackGestureNavigation: Boolean = true,
     val lyricsSourcePreference: LyricsSourcePreference = LyricsSourcePreference.EMBEDDED_FIRST,
@@ -694,6 +695,11 @@ class SettingsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            userPreferencesRepository.audiophileMonoEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(audiophileMonoEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
             userPreferencesRepository.playerVisualizerEnabledFlow.collect { enabled ->
                 _uiState.update { it.copy(playerVisualizerEnabled = enabled) }
             }
@@ -753,6 +759,13 @@ class SettingsViewModel @Inject constructor(
             }
             userPreferencesRepository.setPureDirectEnabled(enabled)
             _uiState.update { it.copy(pureDirectEnabled = enabled) }
+        }
+    }
+
+    fun setAudiophileMonoEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAudiophileMonoEnabled(enabled)
+            _uiState.update { it.copy(audiophileMonoEnabled = enabled) }
         }
     }
 

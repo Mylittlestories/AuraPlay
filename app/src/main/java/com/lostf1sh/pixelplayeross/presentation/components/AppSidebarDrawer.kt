@@ -1,6 +1,9 @@
 package com.lostf1sh.pixelplayeross.presentation.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
@@ -25,9 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.lostf1sh.pixelplayeross.BuildConfig
 import com.lostf1sh.pixelplayeross.R
+import com.lostf1sh.pixelplayeross.ui.theme.Aurora
 
 sealed class DrawerDestination(val route: String) {
     object Home : DrawerDestination("home")
@@ -74,14 +81,16 @@ private fun DrawerContent(
             .statusBarsPadding()
             .padding(horizontal = 16.dp)
     ) {
+        // Branded header: gradient wordmark + tagline + version chip.
         Column(
             modifier = Modifier.padding(vertical = 24.dp, horizontal = 8.dp)
         ) {
             Text(
                 text = stringResource(R.string.presentation_batch_g_app_name),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    brush = Aurora.brush()
+                ),
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -89,14 +98,47 @@ private fun DrawerContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.height(10.dp))
+            Box(
+                modifier = Modifier
+                    .background(
+                        brush = Aurora.tint(
+                            primary = MaterialTheme.colorScheme.primary,
+                            tertiary = MaterialTheme.colorScheme.tertiary
+                        ),
+                        shape = MaterialTheme.shapes.small
+                    )
+                    .padding(horizontal = 10.dp, vertical = 3.dp)
+            ) {
+                Text(
+                    text = "v${BuildConfig.VERSION_NAME} · DRVsoft",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
 
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        // Aurora hairline under the brand header.
+        Box(
+            modifier = Modifier
+                .padding(vertical = 8.dp, horizontal = 4.dp)
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.40f),
+                            androidx.compose.ui.graphics.Color.Transparent
+                        )
+                    ),
+                    shape = MaterialTheme.shapes.extraSmall
+                )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        DrawerSectionLabel(text = stringResource(R.string.drawer_section_listen))
+        Spacer(modifier = Modifier.height(4.dp))
 
         NavigationDrawerItem(
             icon = {
@@ -122,7 +164,7 @@ private fun DrawerContent(
                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(20.dp)
         )
 
         NavigationDrawerItem(
@@ -149,15 +191,13 @@ private fun DrawerContent(
                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(20.dp)
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        )
+        DrawerSectionLabel(text = stringResource(R.string.drawer_section_system))
+        Spacer(modifier = Modifier.height(4.dp))
 
         NavigationDrawerItem(
             icon = {
@@ -183,9 +223,28 @@ private fun DrawerContent(
                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(20.dp)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "github.com/Mylittlestories/AuraPlay",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+@Composable
+private fun DrawerSectionLabel(text: String) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 1.2.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+        modifier = Modifier.padding(horizontal = 16.dp)
+    )
 }

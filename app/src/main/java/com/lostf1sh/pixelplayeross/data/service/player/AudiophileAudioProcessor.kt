@@ -122,7 +122,7 @@ class AudiophileAudioProcessor(
             dsp.pureDirect ||
             (!dsp.limiterEnabled && dsp.preampDb == 0f)
 
-        if (passthrough && !dsp.tapActive) {
+        if (passthrough && !dsp.tapActive && (dsp.pureDirect || !dsp.monoEnabled)) {
             // Nothing to do: bulk copy the bytes through.
             val size = inputBuffer.remaining()
             if (size > 0) {
@@ -173,6 +173,7 @@ class AudiophileAudioProcessor(
                 }
                 monoScratch[0] = mono / channels
                 pushTap(monoScratch, 0, 1)
+                applyMonoIfEnabled(frameSamples)
                 for (ch in 0 until channels) {
                     outputBuffer.putFloat(frameSamples[ch])
                 }
@@ -204,6 +205,7 @@ class AudiophileAudioProcessor(
                 }
                 monoScratch[0] = mono / channels
                 pushTap(monoScratch, 0, 1)
+                applyMonoIfEnabled(frameSamples)
                 for (ch in 0 until channels) {
                     outputBuffer.putShort(floatToShort(frameSamples[ch]))
                 }
@@ -263,9 +265,23 @@ class AudiophileAudioProcessor(
             delayLines[ch][delayWriteIndex] = frameSamples[ch]
         }
         delayWriteIndex = (delayWriteIndex + 1) % lookaheadFrames
+        applyMonoIfEnabled(delayedSamples)
 
         pushTap(delayedSamples, 0, channels)
         return delayedSamples
+    }
+
+    /**
+     * Mono downmix for single-earbud listening: averages every channel and
+     * duplicates the result to all outputs. Skipped in Pure Direct mode
+     * (passthrough never reaches parsing when Pure Direct is on).
+     */
+    private fun applyMonoIfEnabled(frame: FloatArray) {
+        if (!dsp.monoEnabled || dsp.pureDirect || channels <= 1) return
+        var sum = 0f
+        for (ch in 0 until channels) sum += frame[ch]
+        val mono = sum / channels
+        for (ch in 0 until channels) frame[ch] = mono
     }
 
     // -------------------------------------------------------- Sliding min

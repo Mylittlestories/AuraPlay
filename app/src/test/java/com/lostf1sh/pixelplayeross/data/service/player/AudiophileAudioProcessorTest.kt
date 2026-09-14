@@ -169,6 +169,102 @@ class AudiophileAudioProcessorTest {
     }
 
     @Test
+    fun monoDownmix_appliesToPassthrough_andByteConserving() {
+        val dsp = AudiophileDspState().apply {
+            monoEnabled = true
+            limiterEnabled = false
+            preampDb = 0f
+        }
+        val pipeline = buildPipeline(dsp)
+        val rng = Random(21)
+        var inBytes = 0L
+        var outBytes = 0L
+        var stereoFramesChecked = 0
+        repeat(20) {
+            val input = bufferOf(512, rng)
+            inBytes += input.remaining()
+            // Feed + drain via sink semantics.
+            while (!pipeline.isEnded()) {
+                while (true) {
+                    val out = pipeline.getOutput()
+                    if (!out.hasRemaining()) break
+                    // Verify mono: both channels of each frame must be identical.
+                    out.mark()
+                    while (out.remaining() >= 4) {
+                        val left = out.short
+                        val right = out.short
+                        assertEquals("both channels must be identical after mono downmix", left, right)
+                        stereoFramesChecked++
+                    }
+                    out.reset()
+                    outBytes += out.remaining()
+                    out.position(out.limit())
+                }
+                if (!input.hasRemaining()) break
+                pipeline.queueInput(input)
+            }
+        }
+        assertEquals(inBytes, outBytes)
+        assertTrue("expected several frames checked", stereoFramesChecked > 100)
+    }
+
+    @Test
+    fun monoWithDsp_appliesAfterLimiter() {
+        val dsp = AudiophileDspState().apply {
+            monoEnabled = true
+            limiterEnabled = true
+            preampDb = 3f
+        }
+        val pipeline = buildPipeline(dsp)
+        val rng = Random(33)
+        repeat(10) {
+            val input = bufferOf(256, rng)
+            while (!pipeline.isEnded()) {
+                while (true) {
+                    val out = pipeline.getOutput()
+                    if (!out.hasRemaining()) break
+                    out.mark()
+                    while (out.remaining() >= 4) {
+                        assertEquals(out.short, out.short)
+                    }
+                    out.reset()
+                    out.position(out.limit())
+                }
+                if (!input.hasRemaining()) break
+                pipeline.queueInput(input)
+            }
+        }
+    }
+
+    @Test
+    fun pureDirect_beatsMono_untouchedPassthrough() {
+        val dsp = AudiophileDspState().apply {
+            monoEnabled = true
+            pureDirect = true
+            tapActive = false
+        }
+        val pipeline = buildPipeline(dsp)
+        val input = bufferOf(64, Random(9))
+        pipeline.queueInput(input)
+        var sawDifference = false
+        while (true) {
+            val out = pipeline.getOutput()
+            if (!out.hasRemaining()) break
+            out.mark()
+            while (out.remaining() >= 4) {
+                val left = out.short
+                val right = out.short
+                if (left != right) sawDifference = true
+            }
+            out.reset()
+            out.position(out.limit())
+        }
+        // Random stereo input is virtually never already mono: Pure Direct
+        // must leave it untouched rather than downmixing.
+        assertTrue("Pure Direct must bypass mono downmix", sawDifference)
+    }
+
+    @Test
     fun floatInput_conservBytes() {
         val dsp = AudiophileDspState().apply { tapActive = true }
         val processor = AudiophileAudioProcessor(dsp)

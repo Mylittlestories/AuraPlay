@@ -371,6 +371,25 @@ fun SoundEngineScreen(
             }
         }
 
+        // ---------------- Mono audio ----------------
+        EngineCard(
+            icon = Icons.Rounded.GraphicEq,
+            title = stringResource(R.string.sound_engine_mono_title)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.sound_engine_mono_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = uiState.audiophileMonoEnabled,
+                    onCheckedChange = { settingsViewModel.setAudiophileMonoEnabled(it) }
+                )
+            }
+        }
+
         // ---------------- Visualizer ----------------
         EngineCard(
             icon = Icons.Rounded.Equalizer,

@@ -480,6 +480,12 @@ class MusicService : MediaSessionService() {
         }
 
         serviceScope.launch {
+            userPreferencesRepository.audiophileMonoEnabledFlow.collect { enabled ->
+                audiophileDspState.monoEnabled = enabled
+            }
+        }
+
+        serviceScope.launch {
             userPreferencesRepository.resumeOnHeadsetReconnectFlow.collect { enabled ->
                 resumeOnHeadsetReconnectEnabled = enabled
                 if (!enabled) {
